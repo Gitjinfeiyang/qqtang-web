@@ -1,0 +1,34 @@
+{
+  "name": "qqtang",
+  "version": "1.0.0",
+  "description": "a designer",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "build": "node config/build.js",
+    "server": "webpack-dev-server --inline --progress --config config/webpack.default.js"
+  },
+  "author": "jinfeiyang",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.7.0",
+    "copy-webpack-plugin": "^4.5.2",
+    "css-loader": "^0.28.11",
+    "extract-text-webpack-plugin": "^3.0.2",
+    "html-webpack-plugin": "^3.2.0",
+    "style-loader": "^0.21.0",
+    "typescript": "^2.9.2",
+    "webpack": "^4.10.0",
+    "webpack-dev-server": "^3.1.4"
+  },
+  "dependencies": {
+    "ammo.js": "0.0.10",
+    "babel-preset-es2015": "^6.24.1",
+    "box2dweb": "^2.1.0-b",
+    "source-map-loader": "^0.2.3",
+    "ts-loader": "^4.4.2",
+    "webpack-cli": "^2.1.4"
+  }
+}

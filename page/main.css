@@ -1,0 +1,35 @@
+*{margin:0; padding:0;}
+            #svgArea{height:100vh; width:100vw;}
+            .j-wfd-rect rect{fill:#ec5555;stroke:#ccc;stroke-width:4;}
+            .j-wfd-rect rect:hover{stroke:#aaa;}
+
+            .j-wfd-ellipse ellipse{fill:#ffb268;stroke:#ccc;stroke-width:4;}
+            .j-wfd-ellipse ellipse:hover{stroke:#aaa;}
+
+            .j-wfd-line path{fill:none;stroke:#999;stroke-width:2;}
+            .j-wfd-line:hover path{stroke:#333; stroke-width:4;}
+            .j-wfd-line-text{fill:#333; font-size: 10px; }
+            text {
+                  fill:#333;
+                  font-size: 10px;
+                  text-anchor: middle;  /* 文本水平居中 */
+                  dominant-baseline: middle; /* 文本垂直居中 */
+            }
+
+            svg {
+
+-webkit-touch-callout: none; /* iOS Safari */
+
+-webkit-user-select: none; /* Chrome/Safari/Opera */
+
+-khtml-user-select: none; /* Konqueror */
+
+-moz-user-select: none; /* Firefox */
+
+-ms-user-select: none; /* Internet Explorer/Edge */
+
+user-select: none; /* Non-prefixed version, currently
+
+not supported by any browser */
+
+}
