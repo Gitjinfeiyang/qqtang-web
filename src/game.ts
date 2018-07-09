@@ -5,17 +5,24 @@ export default{
     start
 }
 
+let pid=0,pname='';
+
 const res={
     male_red_1:"./static/res/走图/Done_body11001_walk.png",
     female_red_1:"./static/res/走图/Done_body13001_walk.png",
+    male_blue:"./static/res/走图/Done_body55001_walk.png",
+    male_black:"./static/res/走图/Done_body65001_walk.png",
     maptile:"./static/res/地图/maptile.png",
     maptile2:"./static/res/地图/maptile2.png",
     maptile3:"./static/res/地图/paotile1.png",
     maptile4:"./static/res/地图/paotile.png",
     bubble_normal:"./static/res/泡泡/普通.png",
-    bubble_orange:"./static/res/泡泡/香橙.png",
+    // bubble_orange:"./static/res/泡泡/香橙.png",
     bubble_yellow_boom:"./static/res/泡泡/bubbleboom.png",
     medicine:"./static/res/物品/强力药.png",
+    start_page:"./static/res/窗口/开始画面.png",
+    start_button:"./static/res/窗口/start.png",
+    restart_button:"./static/res/窗口/restart.png",
 }
 
 const sounds={
@@ -32,6 +39,26 @@ const sounds={
             {id: "malethanks", src: {ogg:"x40_01.wav"}},
     ]
 };
+
+
+//m type
+const a=1,b=2,c=3,d=4,e=5,f=6,z=-1,x=-2;
+
+
+const map=[
+// 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18
+   z, b, b, b, 0, a, 0, 0, e, e, 0, 0, a, 0, b, b, b, z, //1
+   z, d, c, 0, 0, 0, 0, c, d, d, c, 0, 0, 0, 0, c, d, z, //2
+   z, b, b, 0, d, 0, a, a, a, a, a, a, a, 0, d, b, b, z, //3
+   z, d, 0, z, z, 0, a, 0, 0, 0, 0, 0, a, 0, z, 0, d, z, //4
+   z, e, 0, e, d, 0, a, 0, x, x, x, 0, a, 0, e, 0, e, z, //5
+   z, e, 0, e, d, 0, a, 0, 0, 0, 0, 0, a, 0, e, 0, e, z, //6
+   z, d, 0, z, z, 0, a, a, a, a, a, a, a, 0, z, 0, d, z, //7
+   z, b, b, 0, 0, x, b, b, b, x, b, b, b, x, 0, b, b, z, //8
+   z, d, c, 0, 0, 0, 0, x, d, x, d, x, 0, 0, 0, c, d, z, //9
+   z, b, b, b, c, c, c, c, c, x, c, c, c, c, b, b, b, z, //10
+
+]
 
 
 
@@ -75,8 +102,7 @@ function calcWindowSize(){
 
 }
 
-//for Player's Sprite
-const x_start=30,x_step=100,y_start=40,y_step=100,w=46,h=60;
+
 
 const mapTile={
     xStart:0,
@@ -109,22 +135,25 @@ class GameSound {
             music.play(id);
         }
     }
+
+    static pause(id:string){
+        let src=sounds.manifest.find((item) => {
+            return item.id==id;
+        })
+
+        if(src){
+            let music=Sound[sounds.path+src.src.ogg]
+
+            music.pause(id);
+        }
+    }
 }
 
 
 
-class Bound {
-    
-    x:number
-    y:number
-    w:number
-    h:number
-
+class Game {
     constructor(props){
-        this.x=props.x;
-        this.y=props.y;
-        this.w=props.w;
-        this.h=props.h;
+
     }
 }
 
@@ -142,6 +171,8 @@ class Grid {
     ticker:any;  //PIXI.Ticker
     w:number; 
     h:number;
+    startPage:any;
+    restartPage:any;
 
     constructor(props){
         const options=Object.assign(defaultProps,props)
@@ -173,22 +204,53 @@ class Grid {
         
         
         this.initMap(options)
+        this.initStartPage()
         this.initController()
 
 
-        //draw the grid for debug
-        let grid=new PIXI.Graphics();
-        grid.lineStyle(1,0x333333,1);
-        for(let i=0; i<this.col; i++){
-            grid.moveTo(i*this.size,0);
-            grid.lineTo(i*this.size,window.innerHeight);
-        }
-        for(let i=0; i<this.row; i++){
-            grid.moveTo(0,i*this.size);
-            grid.lineTo(window.innerWidth,i*this.size);
-        }
-        this.map.addChild(grid)
-        //end
+        // //draw the grid for debug
+        // let grid=new PIXI.Graphics();
+        // grid.lineStyle(1,0x333333,1);
+        // for(let i=0; i<this.col; i++){
+        //     grid.moveTo(i*this.size,0);
+        //     grid.lineTo(i*this.size,window.innerHeight);
+        // }
+        // for(let i=0; i<this.row; i++){
+        //     grid.moveTo(0,i*this.size);
+        //     grid.lineTo(window.innerWidth,i*this.size);
+        // }
+        // this.map.addChild(grid)
+        // //end
+    }
+
+    initStartPage(){
+        this.startPage=new PIXI.Container();
+        let g=new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.start_page],new PIXI.Rectangle(0,40,800,520)))
+        g.width=window.innerWidth;
+        g.height=window.innerHeight;
+        let startButton=new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.start_button]))
+        startButton.x=100;
+        startButton.y=window.innerHeight-300;
+        this.startPage.addChild(g)
+        this.startPage.addChild(startButton)
+        this.app.stage.addChild(this.startPage)
+        startButton.interactive = true;
+        startButton.on("click",(event) => {
+            notice("搜索房间中...")
+            Server.emit("search_room",{id:pid,name:pname});
+        })
+
+        this.restartPage=new PIXI.Container();
+        let restart=new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.restart_button]))
+        this.restartPage.addChild(restart);
+        restart.interactive=true;
+        restart.on("click",(event) => {
+            this.restartPage.visible=false;
+            this.self.restart()
+            Server.emit("restart",{id:pid,name:pname})
+        })
+        this.restartPage.visible=false;
+        this.app.stage.addChild(this.restartPage)
     }
 
     initMap(options):void{
@@ -205,22 +267,32 @@ class Grid {
         //add tile
         this.map.addChild(
             new PIXI.extras.TilingSprite(
-                new PIXI.Texture(PIXI.utils.TextureCache[res.maptile],new PIXI.Rectangle(mapTile.xStart, mapTile.yStart+mapTile.step*2, mapTile.step,mapTile.step)),
+                new PIXI.Texture(PIXI.utils.TextureCache[res.maptile],
+                    new PIXI.Rectangle(mapTile.xStart, mapTile.yStart+mapTile.step*2, mapTile.step,mapTile.step)),
                 this.size*this.col,
                 this.size*this.row
             ))
     }
 
 
-    addSelf(data={id:Math.random,isSelf:true,col:1,row:1}):void{
+    addSelf(data:any={id:Math.random,isSelf:true,col:1,row:1}):void{
         let player;
         player=new Player(data)
         player.addTo(this)
         this.self=player;
 
-        this.self.onKillPlayer=(player:Player) => {
-            Server.socket.emit("kill_player",{id:this.self.id,playerId:player.id})
+        player.onKillPlayer=(player:Player) => {
+            Server.emit("kill_player",{id:this.self.id,playerId:player.id})
         }
+
+        player.onRealKillPlayer=(player:Player) => {
+            Server.emit("real_kill_player",{id:this.self.id,playerId:player.id})
+        }
+
+        player.onEatMedicine=(medicine:Medicine) => {
+            Server.emit("eat_medicine",{medicineId:medicine.id})
+        }
+
     }
 
 
@@ -250,14 +322,14 @@ class Grid {
     }
 
     initController():void{
-        let move=null,currentDirection=Direction.LEFT;
+        let move=null,currentDirection=Direction.DOWN;
         let ticker=this.ticker=new PIXI.ticker.Ticker();
         let playerMoving={}
         let playerKeys=[];
         const stop=() => {
             move=null;
             this.self.stopWalk()
-            Server.socket.emit("stop_walk",{
+            Server.emit("stop_walk",{
                 ...this.normalizePos(this.self.x,this.self.y),
                 direction:this.self.direction
             })
@@ -265,7 +337,7 @@ class Grid {
 
         const start=() => {
             this.self.faceTo(currentDirection)
-            Server.socket.emit("walk",{
+            Server.emit("walk",{
                 ...this.normalizePos(this.self.x,this.self.y),
                 direction:this.self.direction
             })
@@ -282,6 +354,7 @@ class Grid {
 
         window.addEventListener("keydown",(e) => {
             if(this.self.state !== PlayerState.NORMAL) return;
+            if(e.repeat) return;  //持续按住
             let keycode=e.code;
             switch(keycode){
                 case 'ArrowLeft':
@@ -306,9 +379,10 @@ class Grid {
                     break;
                 case 'Space':
                     let bubble=this.self.createBubble()
-                    Server.socket.emit("create_bubble",{id:this.self.id,col:bubble.col,row:bubble.row,bubbleId:bubble.id})
+                    if(!bubble) return;
+                    Server.emit("create_bubble",{id:this.self.id,col:bubble.col,row:bubble.row,bubbleId:bubble.id})
                     bubble.onDestroy=() =>{
-                        Server.socket.emit("bubble_boom",{id:this.self.id,bubbleId:bubble.id})
+                        Server.emit("bubble_boom",{id:this.self.id,bubbleId:bubble.id})
                     }
                     break;
 
@@ -344,9 +418,9 @@ class Grid {
             }
         })
 
-        
+        Server.emit("join",{id:pid,name:pname});
 
-        Server.socket.on("player_walk",(data) => {
+        Server.on("player_walk",(data) => {
             let player=this.players.find((item) => {
                 return item.id === data.id;
             })
@@ -354,20 +428,20 @@ class Grid {
             if(!player) return;
 
             player.faceTo(data.direction);
-            player.update({x:data.x,y:data.y});
+            player.update(g.unNormalizePos(data.x,data.y));
 
                     switch(player.direction){
                         case Direction.DOWN:
-                            playerMoving[player.id]=player.moveDown()
+                            playerMoving[player.id]=player.moveDown
                             break;
                         case Direction.LEFT:
-                            playerMoving[player.id]=player.moveLeft()
+                            playerMoving[player.id]=player.moveLeft
                             break;
                         case Direction.RIGHT:
-                            playerMoving[player.id]=player.moveRight()
+                            playerMoving[player.id]=player.moveRight
                             break;
                         case Direction.UP:
-                            playerMoving[player.id]=player.moveUp()
+                            playerMoving[player.id]=player.moveUp
                             break;
                         default :
                             playerMoving[player.id]=null;
@@ -375,7 +449,7 @@ class Grid {
 
         })
 
-        Server.socket.on("player_stop_walk",(data) => {
+        Server.on("player_stop_walk",(data) => {
             let player=g.players.find((item) => {
                 return item.id === data.id;
             })
@@ -389,7 +463,7 @@ class Grid {
 
         })
 
-        Server.socket.on("player_create_bubble",(data) => {
+        Server.on("player_create_bubble",(data) => {
             let player=this.players.find((item) => {
                  return item.id == data.id;
             })
@@ -397,7 +471,7 @@ class Grid {
             player.createBubble(data.bubbleId);
         })
 
-        Server.socket.on("player_bubble_boom",(data) => {
+        Server.on("player_bubble_boom",(data) => {
             let player=this.players.find((item) => {
                  return item.id == data.id;
             })
@@ -409,7 +483,7 @@ class Grid {
             bubble.boomNow()
         })
 
-        Server.socket.on("player_kill_player",(data) => {
+        Server.on("player_kill_player",(data) => {
             let player1=this.players.find((item) => {
                 return item.id == data.id;
             })
@@ -418,6 +492,73 @@ class Grid {
             })
             if(player1&&player2){
                 player1.kill(player2)
+
+            }
+        })
+
+        Server.on("player_real_kill_player",(data) => {
+            let player1=this.players.find((item) => {
+                return item.id == data.id;
+            })
+            let player2=this.players.find((item) => {
+                return item.id == data.playerId;
+            })
+            if(player1&&player2){
+                player1.realKill(player2)
+                if(player2 == this.self){
+                    this.restartPage.visible=true;
+                    notice(player1.name+" kill "+player2.name)
+                }
+            }
+        })
+
+        Server.on("game_start",(data) => {
+            this.startPage.visible=false;
+            GameSound.play("readygo")
+            GameSound.play("water",{loop:true})
+            GameSound.pause("home")
+        })
+
+           
+        Server.on("join_success",(data) => {
+            
+            notice("本机成功加入房间")
+            loadMap(this,map,data.medicines)
+            this.addSelf({col:data.col,row:data.row,id:data.id,name:data.name,isSelf:true,team:data.team})
+            stop()
+            //初始化 获取用户列表
+            data.players.forEach((item) => {
+                if(this.self.id != item.id){
+                    new Player({id:item.id,...g.unNormalizePos(item.x,item.y),name:item.name,team:item.team}).addTo(g)
+                }
+            })
+
+
+                    Server.on("player_join",(data) => {
+                        notice(data.name+" 加入房间")
+                        new Player({id:data.id,row:data.row,col:data.col,name:data.name,team:data.team}).addTo(this)
+                    })
+        })
+
+
+
+        Server.on("player_restart",(data) => {
+            notice(data.name + "复活")
+            let player1=this.players.find((item) => {
+                return item.id == data.id;
+            })
+            if(player1){
+                player1.restart()
+            }
+        })
+
+
+        Server.on("player_leave",({id}) => {
+            let player=this.players.find((item) => {
+                return item.id == id;
+            })
+            if(player){
+
             }
         })
 
@@ -471,6 +612,24 @@ class Grid {
 }
 
 
+
+
+class Bound {
+    
+    x:number
+    y:number
+    w:number
+    h:number
+
+    constructor(props){
+        this.x=props.x;
+        this.y=props.y;
+        this.w=props.w;
+        this.h=props.h;
+    }
+}
+
+
 //网格中的物体
 class Material extends Bound{
     id:number;
@@ -498,7 +657,7 @@ class Material extends Bound{
         this.z=props.z||10;
         this.ele;
         this.grid;
-        this.basicTexture=null;
+        this.basicTexture=props.texture;
         this.destroyed=false;
         this.scalex=this.scaley=0.9;
         this.offseth=6;
@@ -529,6 +688,11 @@ class Material extends Bound{
         let tileSize=this.grid.size;
         let xsize=tileSize*this.scalex;
         let ysize=tileSize*this.scaley;
+        if(!this.col||!this.row){
+            let {col,row}=this.getColRow();
+            this.col=col;
+            this.row=row;
+        }
         return {
             x:this.col*tileSize+(tileSize-xsize)/2,
             y:this.row*tileSize+(tileSize-ysize)/2,
@@ -559,8 +723,17 @@ class Material extends Bound{
         this.onDestroy&&this.onDestroy()
     }
 
+    getColRow(){
+        let {col,row}=getColRow(this.x+this.w/2,this.y+this.h/2,this.grid.size);
+        return {col,row}
+    }
+
 
 }
+
+
+//for Player's Sprite
+const x_start=29,x_step=100,y_start=40,y_step=100,w=42,h=60;
 
 class Player extends Material{
     speed:number; //速度
@@ -572,15 +745,20 @@ class Player extends Material{
     isSelf:boolean;        //是否本机
     basicTexture:any;      //纹理
     medicines:Array<Medicine> //获取药品列表
-    onKillPlayer:Function;   
+    onKillPlayer:Function;
+    onRealKillPlayer:Function;
+    onEatMedicine:Function;   
+    name:string; //用户名
+    animateSprite:any;
+    team:string;
 
     constructor(props){
         const options=Object.assign({
             //Player
             speed:defaultProps.size/10,
             direction:null,
-            maxBubbleCount:10,
-            bubbleRadius:2,
+            maxBubbleCount:1,
+            bubbleRadius:1,
             state:PlayerState.NORMAL,
             passable:true,
         },props)
@@ -589,42 +767,68 @@ class Player extends Material{
         this.direction=options.direction;
         this.maxBubbleCount=options.maxBubbleCount;
         this.bubbleRadius=options.bubbleRadius;
+        this.team=options.team;
         this.bubbles=[
             //Bubble
         ];
         this.medicines=[];
         this.state=options.state;
         this.isSelf=props.isSelf||false;
+        this.name=props.name;
 
         //绑定对象
         this.moveLeft=this.moveLeft.bind(this)
         this.moveRight=this.moveRight.bind(this)
         this.moveUp=this.moveUp.bind(this)
         this.moveDown=this.moveDown.bind(this)
-
-        this.basicTexture=PIXI.utils.TextureCache[res.male_red_1];
+        let src='';
+        switch(options.team){
+            case 'red':
+                src=res.male_red_1;break;
+            case 'blue':
+                src=res.male_blue;break;
+            case 'black':
+                src=res.male_black;break;
+            default :
+                src=res.male_red_1;
+        }
+        this.basicTexture=PIXI.utils.TextureCache[src];
         this.scalex=0.7;
         this.scaley=0.8;
 
         this.onKillPlayer=null;
+        this.onRealKillPlayer=null;
+        this.onEatMedicine=null;
     }
 
     render():object{
 
         let g=new PIXI.extras.AnimatedSprite([this.getFrame(x_start,y_start,w,h)]);
-        g.x=this.x-this.offsetw;
-        g.y=this.y-this.offseth;
+        g.x=0;
+        g.y=0;
         g.width=this.w+this.offsetw;
         g.height=this.h+this.offseth;
         g.animationSpeed=0.2
         g.loop=true;
 
-        return g;
+        let container=new PIXI.Container();
+        container.x=this.x-this.offsetw;
+        container.y=this.y-this.offseth;
+
+        let text = new PIXI.Text(this.name,{fontFamily : 'Arial', fontSize: 12, fill : 0xf5f500, align : 'center'});
+
+        text.x=0;
+        text.y=-14;
+        container.addChild(g)
+        container.addChild(text)
+        this.animateSprite=g;
+
+        return container;
     }
     
     createBubble(id?:number):Bubble{
         GameSound.play("uinormal")
-        if(this.bubbles.length>= this.maxBubbleCount) return;
+        if(this.bubbles.length>= this.maxBubbleCount) return null;
         let {col,row}=getColRow(this.x+this.w/2,this.y+this.w/2,this.grid.size)
         let b=new Bubble({col,row,player:this,id})
         this.bubbles.push(b);
@@ -644,12 +848,12 @@ class Player extends Material{
     }
 
     stopWalk():void{
-        this.ele.stop()
+        this.animateSprite.stop()
     }
 
     faceTo(direction:Direction):void{
         if(this.direction===direction){
-            this.ele.play()
+            this.animateSprite.play()
             return;
         }
         let yStart=y_start;
@@ -676,8 +880,8 @@ class Player extends Material{
             frameArray.push(frame);
         }
 
-        this.ele.textures=frameArray;
-        this.ele.play()
+        this.animateSprite.textures=frameArray;
+        this.animateSprite.play()
     }
 
     leftTest():Array<Material>{
@@ -782,12 +986,20 @@ class Player extends Material{
     //击杀
     realKill(player:Player):void{
         player.state=PlayerState.DIE;
-        alert("die!!!")
+        GameSound.play("playerboom")
+        this.onRealKillPlayer&&this.onRealKillPlayer(player)
+    }
+
+    restart(){
+        this.state=PlayerState.NORMAL;
+        this.ele.scale=new PIXI.Point(1,1);
     }
 
     checkHit(material:Material):void{
+        if(!this.isSelf) return;
         if(material instanceof Medicine){
             material.eatByPlayer(this);
+            this.onEatMedicine&&this.onEatMedicine(material)
         }else if(material instanceof Player){
             if(material.state === PlayerState.FALL){
                 this.realKill(material)
@@ -800,6 +1012,8 @@ class Player extends Material{
         this.y=data.y;
         this.ele.x=this.x-this.offsetw;
         this.ele.y=this.y-this.offseth;
+        let {col,row}=getColRow(this.x+this.w/2,this.y+this.h/2,this.grid.size);
+        this.col=col;this.row=row;
     }
 
 }
@@ -930,7 +1144,7 @@ class Bubble extends Material{
         let tyS=64;
         let left=new PIXI.Sprite(new PIXI.Texture(texture,new PIXI.Rectangle(txS*2,0,txS+1,tyS))),
             right=new PIXI.Sprite(new PIXI.Texture(texture,new PIXI.Rectangle(txS*3,0,txS-1,tyS))),
-            up=new PIXI.Sprite(new PIXI.Texture(texture,new PIXI.Rectangle(txS*0,0,txS,tyS-2))),
+            up=new PIXI.Sprite(new PIXI.Texture(texture,new PIXI.Rectangle(txS*0,0,txS,tyS-8))),
             down=new PIXI.Sprite(new PIXI.Texture(texture,new PIXI.Rectangle(txS*1+1,0,txS,tyS))),
             row=new PIXI.extras.TilingSprite(
                 new PIXI.Texture(texture,new PIXI.Rectangle(txS*4,0,txS,tyS)),
@@ -952,11 +1166,19 @@ class Bubble extends Material{
             row.y=left.y;
             col.x=up.x;
             col.y=up.y+tileSize;
-            g.addChild.apply(g,[left,row,right])
+            left.width=right.width=tileSize;
+            up.height=down.height=tileSize;
+            g.addChild.apply(g,[left,row,right,up,down,col])
 
             // //for debug
             //    let s=new PIXI.Graphics();
             //    s.lineStyle(1,0xf1f1f1);
+            //    s.drawRect(up.x,up.y,up.width,up.height)
+            //    s.drawRect(col.x,col.y,col.width,col.height)
+            //    s.drawRect(down.x,down.y,down.width,down.height)
+            //    s.drawRect(left.x,left.y,left.width,left.height)
+            //    s.drawRect(row.x,row.y,row.width,row.height)
+            //    s.drawRect(right.x,right.y,right.width,right.height)
             //    s.drawRect(bound[0].x,bound[1].y,bound[0].w,bound[1].h)
             //    g.addChild(s)
 
@@ -1017,7 +1239,7 @@ class Bubble extends Material{
                     }
                 })
 
-
+        }
 
                 let arr=[left,right,up,down];
                 arr.forEach((m:any) => {
@@ -1034,10 +1256,8 @@ class Bubble extends Material{
                         }
                     }
                 })
-        }
         
         //end
-
 
 
         return [
@@ -1059,17 +1279,17 @@ class Bubble extends Material{
 
 
 class Medicine extends Material{
-    container:Stone;
+    // container:Stone;
 
     constructor(props){
         super(Object.assign({
             destructible:false, // 默认初始不能破坏
             passable:true
         },props))
-        this.container=props.container;
-        this.row=this.container.row;
-        this.col=this.container.col;
-        this.z=this.container.z-1;
+        // this.container=props.container;
+        // this.row=props.row;
+        // this.col=props.col;
+        // this.z=this.container.z-1;
         this.scalex=0.7
         this.scaley=0.8
     }
@@ -1086,7 +1306,7 @@ class Medicine extends Material{
 
 }
 
-class Medicine1 extends Medicine {
+class AddSpeed extends Medicine {
 
     constructor(props){
         super(props);
@@ -1096,10 +1316,41 @@ class Medicine1 extends Medicine {
 
     //overide   
     changePlayerAttr(player:Player){
-        player.speed+=10;
+        player.speed+=2;
     }
 
 }
+
+class AddBubble extends Medicine {
+
+    constructor(props){
+        super(props);
+        this.basicTexture=new PIXI.Texture(PIXI.utils.TextureCache[res.medicine],new PIXI.Rectangle(0,0,32,64))
+    }
+
+
+    //overide   
+    changePlayerAttr(player:Player){
+        player.maxBubbleCount+=1;
+    }
+
+}
+
+class AddBubbleRadius extends Medicine {
+
+    constructor(props){
+        super(props);
+        this.basicTexture=new PIXI.Texture(PIXI.utils.TextureCache[res.medicine],new PIXI.Rectangle(0,0,32,64))
+    }
+
+
+    //overide   
+    changePlayerAttr(player:Player){
+        player.bubbleRadius+=1;
+    }
+
+}
+
 
 
 
@@ -1113,6 +1364,10 @@ const Server={
     emit(type,data){
         let socket=Server.socket;
         socket.emit(type,data)
+    },
+
+    on(type,callback){
+        Server.socket.on(type,callback)
     }
 }
 
@@ -1195,6 +1450,13 @@ function betweenRange(value:number,range:any):boolean{
 }
 
 
+
+//
+function notice(str:string):void
+{
+    console.log(str)
+}
+
 //load image resource
 function loadRes(callback):void{
     let resource=Object.keys(res).map((key:string) => {
@@ -1209,24 +1471,6 @@ function loadRes(callback):void{
 }
 
 
-//m type
-const a=1,b=2,c=3,d=4,e=5,f=6,z=-1,x=-2;
-
-
-const map=[
-// 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18
-   z, b, b, b, 0, a, 0, 0, e, e, 0, 0, a, 0, b, b, b, z, //1
-   z, d, c, 0, 0, 0, 0, c, d, d, c, 0, 0, 0, 0, c, d, z, //2
-   z, b, b, 0, d, 0, a, a, a, a, a, a, a, 0, d, b, b, z, //3
-   z, d, 0, z, z, 0, a, 0, 0, 0, 0, 0, a, 0, z, 0, d, z, //4
-   z, e, 0, e, d, 0, a, 0, x, x, x, 0, a, 0, e, 0, e, z, //5
-   z, e, 0, e, d, 0, a, 0, 0, 0, 0, 0, a, 0, e, 0, e, z, //6
-   z, d, 0, z, z, 0, a, a, a, a, a, a, a, 0, z, 0, d, z, //7
-   z, b, b, 0, 0, x, b, b, b, x, b, b, b, x, 0, b, b, z, //8
-   z, d, c, 0, 0, 0, 0, x, d, x, d, x, 0, 0, 0, c, d, z, //9
-   z, b, b, b, c, c, c, c, c, x, c, c, c, c, b, b, b, z, //10
-
-]
 
 
 //start the game
@@ -1239,79 +1483,67 @@ function start(socket){
 
     Server.socket=socket;
     loadRes(function(){
-        g=new Grid({})
         // let stone=new Stone({row:5,col:5})
 
         // new Medicine1({container:stone}).addTo(g)
         // stone.addTo(g);
 
-        loadMap(g,map)
 
-        GameSound.play("water",{loop:true})
+        GameSound.play("home",{loop:true})
 
-        // let id=parseInt(String(Math.random()*1000))
-        // let name=prompt("name:","Player "+id);
-
-
-        // Server.emit("join_room",{id,name});
-           
-        // Server.socket.on("join_success",function(data){
-        //     console.log("本机成功加入房间")
-            g.addSelf({col:3,row:1,id:1})
-
-        //     //初始化
-        //     data.players.forEach((item) => {
-        //         if(g.self.id != item.id){
-        //             new Player({id:item.id,...g.unNormalizePos(item.x,item.y)}).addTo(g)
-        //         }
-        //     })
-        // })
-
-        // Server.socket.on("player_join",function(data){
-        //     console.log(data.name+" 加入房间")
-        //     new Player({id:data.id,row:data.row,col:data.col}).addTo(g)
-        // })
-
+        pid=parseInt(String(Math.random()*1000))
+        pname=prompt("name:","Player "+pid);
+        g=new Grid({})
     })    
 }
 
 
 
-function loadMap(g:Grid,map:Array<number>){
+function loadMap(g:Grid,map:Array<number>,medicines:Array<any>):void{
     const base=41;
-        const texture={
-            box:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2],new PIXI.Rectangle(0,0,60,68)),
-            box1:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2],new PIXI.Rectangle(61,0,60,68)),
-            box2:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2],new PIXI.Rectangle(122,0,60,68)),
-            box3:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2],new PIXI.Rectangle(183,0,60,68)),
-            s1:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile3],new PIXI.Rectangle(base*0,0,base,52)),
-            s2:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile3],new PIXI.Rectangle(base*1,0,base,52)),
-            s3:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile3],new PIXI.Rectangle(base*2,0,base,52)),
-            s4:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(160,180,base,60)),
-            s5:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(200,180,base,60)),
-            s6:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(240,180,base,60)),
-            s7:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(280,180,base,60)),
-            s8:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(320,180,base,60)),
-            s9:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(340,180,base,60)),
-        }
+    const texture={
+        box:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2],new PIXI.Rectangle(0,0,60,68)),
+        box1:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2],new PIXI.Rectangle(61,0,60,68)),
+        box2:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2],new PIXI.Rectangle(122,0,60,68)),
+        box3:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2],new PIXI.Rectangle(183,0,60,68)),
+        s1:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile3],new PIXI.Rectangle(base*0,0,base,52)),
+        s2:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile3],new PIXI.Rectangle(base*1,0,base,52)),
+        s3:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile3],new PIXI.Rectangle(base*2,0,base,52)),
+        s4:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(160,180,base,60)),
+        s5:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(200,180,base,60)),
+        s6:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(240,180,base,60)),
+        s7:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(280,180,base,60)),
+        s8:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(320,180,base,60)),
+        s9:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4],new PIXI.Rectangle(340,180,base,60)),
+    }
 
-    let col=0,row=0;
     map.forEach((item,index) => {
-        if(index!=0){
-            col=((index+1)%18 || 18) -1;
-        }else{
-            col=(index+1)%18 -1;
-        }
-        row=((index+1)%18)==0?((index+1)/18)-1:Math.floor((index+1)/18);
-
+        let {col,row}=getColRowByIndex(index,18)
         if(col==0){
-                new Stone({col:col-1,row,texture:texture.box2,destructible:false}).addTo(g)
+                new Stone({col:col-1,row,texture:texture.box3,destructible:false}).addTo(g)
         }else if(col == 17){
-                new Stone({col:col+1,row,texture:texture.box2,destructible:false}).addTo(g)
+                new Stone({col:col+1,row,texture:texture.box3,destructible:false}).addTo(g)
         }else if(row == 0){
-                new Stone({col:col,row:row-1,texture:texture.box2,destructible:false}).addTo(g)
+                new Stone({col:col,row:row-1,texture:texture.box3,destructible:false}).addTo(g)
         }else if(row == 9){
-                new Stone({col:col,row:row+1,texture:texture.box2,destructible:false}).addTo(g)
+                new Stone({col:col,row:row+1,texture:texture.box3,destructible:false}).addTo(g)
+        }
+
+
+        //add Medicine if have
+        if(medicines[index]&&item){
+            if(medicines[index].eat) return;
+            switch(medicines[index].medicine){
+                case 'add_speed':
+                    new AddSpeed({id:medicines[index].id,col,row}).addTo(g)
+                    break;
+                case 'add_bubble':
+                    new AddBubble({id:medicines[index].id,col,row}).addTo(g)
+                    break;
+                case 'add_bubble_radius':
+                    new AddBubbleRadius({id:medicines[index].id,col,row}).addTo(g)
+                    break;
+            }
         }
         
         switch (item){
@@ -1343,7 +1575,19 @@ function loadMap(g:Grid,map:Array<number>){
                 new Stone({col,row,texture:texture.s3}).addTo(g)
                 break;
         }
+
     })
+}
+function getColRowByIndex(index:number,mCol:number){
+    let col=0,row=0;
+    if(index!=0){
+            col=((index+1)%mCol || mCol) -1;
+        }else{
+            col=(index+1)%mCol -1;
+        }
+    row=((index+1)%mCol)==0?((index+1)/mCol)-1:Math.floor((index+1)/mCol);
+
+    return {col,row}
 }
 
 
