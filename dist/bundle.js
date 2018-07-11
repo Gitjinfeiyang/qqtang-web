@@ -62,7 +62,7 @@
 /******/ 	}
 /******/
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "e3569aec9863acfbc3c8"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "3a8b4884bd5408679292"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -810,26 +810,52 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var PIXI = window.PIXI;
-var Sound = window.sounds;
+// const Sound=(<any>window).sounds;
+var Howl = window.Howl;
 exports.default = {
     start: start
 };
+var pid = 0,
+    pname = '';
 var res = {
     male_red_1: "./static/res/走图/Done_body11001_walk.png",
     female_red_1: "./static/res/走图/Done_body13001_walk.png",
+    male_blue: "./static/res/走图/Done_body55001_walk.png",
+    male_black: "./static/res/走图/Done_body65001_walk.png",
     maptile: "./static/res/地图/maptile.png",
     maptile2: "./static/res/地图/maptile2.png",
     maptile3: "./static/res/地图/paotile1.png",
     maptile4: "./static/res/地图/paotile.png",
-    bubble_normal: "./static/res/泡泡/普通.png",
-    bubble_orange: "./static/res/泡泡/香橙.png",
+    maptile5: "./static/res/地图/Q版树林精灵类动画游戏素材-丛林qq堂-Map 元素_6(M_爱给网_aigei_com.png",
+    bubble_normal: "./static/res/泡泡/bubble_normal.png",
+    // bubble_orange:"./static/res/泡泡/香橙.png",
     bubble_yellow_boom: "./static/res/泡泡/bubbleboom.png",
-    medicine: "./static/res/物品/强力药.png"
+    medicine: "./static/res/物品/强力药.png",
+    start_page: "./static/res/窗口/开始画面.png",
+    start_button: "./static/res/窗口/start.png",
+    restart_button: "./static/res/窗口/restart.png",
+    playerfall1: "./static/res/泡泡/100组卡通烟火冲击序列-魔法光效-0_爱给网_aigei_com.png",
+    playerfall2: "./static/res/泡泡/100组卡通烟火冲击序列-魔法光效-1_爱给网_aigei_com.png",
+    playerfall3: "./static/res/泡泡/100组卡通烟火冲击序列-魔法光效-2_爱给网_aigei_com.png",
+    playerfall4: "./static/res/泡泡/100组卡通烟火冲击序列-魔法光效-3_爱给网_aigei_com.png",
+    playerfall5: "./static/res/泡泡/100组卡通烟火冲击序列-魔法光效-5_爱给网_aigei_com.png"
 };
 var sounds = {
     path: "./static/res/music/",
     manifest: [{ id: "home", src: { ogg: "das.ogg" } }, { id: "water", src: { ogg: "water.ogg" } }, { id: "readygo", src: { ogg: "ReadyGo.wav" } }, { id: "uinormal", src: { ogg: "uiNormal.wav" } }, { id: "eat", src: { ogg: "X08_01.wav" } }, { id: "bubbleboom", src: { ogg: "X10_01.wav" } }, { id: "playerboom", src: { ogg: "X12_01.wav" } }, { id: "femalethanks", src: { ogg: "X39_01.wav" } }, { id: "malethanks", src: { ogg: "x40_01.wav" } }]
 };
+//m type
+var a = 1,
+    b = 2,
+    c = 3,
+    d = 4,
+    e = 5,
+    f = 6,
+    z = -1,
+    x = -2;
+var map = [
+// 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18
+z, b, a, b, 0, a, 0, 0, e, e, 0, 0, a, 0, b, a, b, z, z, d, c, 0, 0, 0, 0, c, d, d, c, 0, 0, 0, 0, c, d, z, z, b, b, 0, d, 0, a, a, a, a, a, a, a, 0, d, b, b, z, z, d, 0, z, z, 0, a, 0, 0, 0, 0, 0, a, 0, z, 0, d, z, x, e, 0, e, d, 0, a, 0, x, x, x, 0, a, 0, e, 0, e, x, x, e, 0, e, d, 0, a, 0, 0, 0, 0, 0, a, 0, e, 0, e, x, z, d, 0, z, z, 0, a, a, a, a, a, a, a, 0, z, 0, d, z, z, b, b, 0, 0, x, b, b, b, x, b, b, b, x, 0, b, b, z, z, d, c, 0, 0, 0, 0, x, d, x, d, x, 0, 0, 0, c, d, z, z, b, a, b, c, c, c, d, c, x, c, d, c, c, b, a, b, z];
 var Direction;
 (function (Direction) {
     Direction["UP"] = "up";
@@ -864,19 +890,13 @@ function calcWindowSize() {
         size: size
     };
 }
-//for Player's Sprite
-var x_start = 30,
-    x_step = 100,
-    y_start = 40,
-    y_step = 100,
-    w = 46,
-    h = 60;
 var mapTile = {
     xStart: 0,
     yStart: 0,
     step: 56
 };
 //sound.js 兼容性有问题
+var soundInstance = {};
 
 var GameSound = function () {
     function GameSound() {
@@ -886,12 +906,22 @@ var GameSound = function () {
     _createClass(GameSound, null, [{
         key: "load",
         value: function load(callback) {
-            Sound.whenLoaded = callback;
+            // Sound.whenLoaded = callback;
             var soundList = sounds.manifest.map(function (item) {
                 return sounds.path + item.src.ogg;
             });
-            Sound.load(soundList);
-            // callback()
+            soundList.forEach(function (item) {
+                soundInstance[item] = new Howl({
+                    src: [item]
+                });
+            });
+            callback();
+            // soundInstance = new Howl({
+            //     src: soundList
+            //   });
+            //   soundInstance.once('load', function(){
+            //     callback()
+            //   });
         }
     }, {
         key: "play",
@@ -902,26 +932,179 @@ var GameSound = function () {
                 return item.id == id;
             });
             if (src) {
-                var music = Sound[sounds.path + src.src.ogg];
-                Object.keys(config).forEach(function (key) {
-                    music[key] = config[key];
-                });
-                music.play(id);
+                // let music=Sound[sounds.path+src.src.ogg]
+                // Object.keys(config).forEach((key) => {
+                //     music[key]=config[key]
+                // })
+                soundInstance[sounds.path + src.src.ogg].play();
+                if (config.loop) {
+                    soundInstance[sounds.path + src.src.ogg].loop(true);
+                }
             }
+        }
+    }, {
+        key: "pause",
+        value: function pause(id) {
+            // let src=sounds.manifest.find((item) => {
+            //     return item.id==id;
+            // })
+            // if(src){
+            //     let music=Sound[sounds.path+src.src.ogg]
+            //     music.pause(id);
+            // }
         }
     }]);
 
     return GameSound;
 }();
 
-var Bound = function Bound(props) {
-    _classCallCheck(this, Bound);
+var GameControler = function () {
+    function GameControler(props) {
+        _classCallCheck(this, GameControler);
 
-    this.x = props.x;
-    this.y = props.y;
-    this.w = props.w;
-    this.h = props.h;
-};
+        this.platform = props.platform;
+        this.onDirectionChange = null;
+        this.onAction = null;
+        this.directionEle = null;
+        this.actionEle = null;
+        if (this.platform == 'pc') {
+            this.initPC();
+        } else {
+            this.initMobile();
+        }
+    }
+
+    _createClass(GameControler, [{
+        key: "initMobile",
+        value: function initMobile() {
+            var _this = this;
+
+            var r = 80,
+                r1 = 50;
+            this.directionEle = new PIXI.Container();
+            this.directionEle.width = r * 2;
+            this.directionEle.height = r * 2;
+            var outside = new PIXI.Graphics();
+            this.directionEle.addChild(outside);
+            outside.beginFill(0xffffff, 0.3);
+            outside.drawCircle(0, 0, r);
+            outside.endFill();
+            outside.x = r;
+            outside.y = r;
+            outside.interactive = true;
+            var allowControl = false;
+            var last = '';
+            outside.on("pointermove", function (e) {
+                if (!allowControl) return;
+                var x = e.data.global.x;
+                var y = e.data.global.y;
+                if (x - _this.directionEle.x <= 0) {
+                    if (last === 'ArrowLeft') return;
+                    _this.emitDirectionChange({ direction: "ArrowLeft" });
+                } else if (x - _this.directionEle.x - r * 2 >= 0) {
+                    if (last === 'ArrowLeft') return;
+                    _this.emitDirectionChange({ direction: "ArrowRight" });
+                } else if (y - _this.directionEle.y <= 0) {
+                    if (last === 'ArrowUp') return;
+                    _this.emitDirectionChange({ direction: "ArrowUp" });
+                } else if (y - _this.directionEle.y - r * 2 >= 0) {
+                    if (last === 'ArrowDown') return;
+                    _this.emitDirectionChange({ direction: "ArrowDown" });
+                } else {
+                    if (last === 'Center') return;
+                    _this.emitDirectionChange({ direction: "Center" });
+                }
+            });
+            outside.on("pointerdown", function (e) {
+                allowControl = true;
+            });
+            outside.on("touchend", function (e) {
+                allowControl = false;
+                _this.emitDirectionChange({ direction: "Center" });
+            });
+            outside.on("touchendoutside", function (e) {
+                allowControl = false;
+                _this.emitDirectionChange({ direction: "Center" });
+            });
+            this.actionEle = new PIXI.Container();
+            var createBubble = new PIXI.Graphics();
+            this.actionEle.addChild(createBubble);
+            createBubble.beginFill(0xffffff, 0.3);
+            createBubble.drawCircle(0, 0, r1);
+            createBubble.endFill();
+            createBubble.x = r1;
+            createBubble.y = r1;
+            createBubble.interactive = true;
+            createBubble.on("tap", function (e) {
+                _this.emitAction({ action: "CreateBubble" });
+            });
+        }
+    }, {
+        key: "attachDirectionControler",
+        value: function attachDirectionControler(pixi, x, y) {
+            pixi.addChild(this.directionEle);
+            if (x) {
+                this.directionEle.x = x;
+            }
+            if (y) {
+                this.directionEle.y = y;
+            }
+        }
+    }, {
+        key: "attachActionControler",
+        value: function attachActionControler(pixi, x, y) {
+            pixi.addChild(this.actionEle);
+            if (x) {
+                this.actionEle.x = x;
+            }
+            if (y) {
+                this.actionEle.y = y;
+            }
+        }
+    }, {
+        key: "initPC",
+        value: function initPC() {
+            var _this2 = this;
+
+            var keydownArr = [];
+            window.addEventListener("keydown", function (e) {
+                if (e.repeat) return;
+                var keycode = e.code;
+                if (keycode == 'Space') {
+                    _this2.emitAction({ action: "CreateBubble" });
+                    return;
+                }
+                if (keydownArr.indexOf(keycode) >= 0) return;
+                keydownArr.push(keycode);
+                _this2.emitDirectionChange({ direction: keycode });
+            });
+            window.addEventListener("keyup", function (e) {
+                var keycode = e.code;
+                var keycodeIndex = keydownArr.indexOf(keycode);
+                var isCurrentDirection = keycodeIndex === keydownArr.length - 1;
+                keydownArr.splice(keycodeIndex, 1);
+                if (!isCurrentDirection) return;
+                if (keydownArr.length > 0) {
+                    _this2.emitDirectionChange({ direction: keydownArr[keydownArr.length - 1] });
+                } else {
+                    _this2.emitDirectionChange({ direction: "Center" });
+                }
+            });
+        }
+    }, {
+        key: "emitDirectionChange",
+        value: function emitDirectionChange(e) {
+            this.onDirectionChange && this.onDirectionChange(e);
+        }
+    }, {
+        key: "emitAction",
+        value: function emitAction(e) {
+            this.onAction && this.onAction(e);
+        }
+    }]);
+
+    return GameControler;
+}();
 
 var Grid = function () {
     function Grid(props) {
@@ -941,32 +1124,81 @@ var Grid = function () {
         this.col = options.col;
         this.row = options.row;
         this.size = options.size;
+        this.w = window.innerWidth;
+        this.h = window.innerHeight;
         this.app = new PIXI.Application({
-            width: window.innerWidth,
-            height: window.innerHeight,
+            width: this.w,
+            height: this.h,
             antialias: true,
             transparent: false,
             resolution: 1 // default: 1
         });
         document.body.appendChild(this.app.view);
+        if (IsPC()) {
+            this.platform = 'pc';
+        } else {
+            this.platform = 'ios';
+        }
         this.initMap(options);
+        this.initStartPage(options);
         this.initController();
-        //draw the grid for debug
-        var grid = new PIXI.Graphics();
-        grid.lineStyle(1, 0x333333, 1);
-        for (var i = 0; i < this.col; i++) {
-            grid.moveTo(i * this.size, 0);
-            grid.lineTo(i * this.size, window.innerHeight);
-        }
-        for (var _i = 0; _i < this.row; _i++) {
-            grid.moveTo(0, _i * this.size);
-            grid.lineTo(window.innerWidth, _i * this.size);
-        }
-        this.map.addChild(grid);
-        //end
+        // //draw the grid for debug
+        // let grid=new PIXI.Graphics();
+        // grid.lineStyle(1,0x333333,1);
+        // for(let i=0; i<this.col; i++){
+        //     grid.moveTo(i*this.size,0);
+        //     grid.lineTo(i*this.size,window.innerHeight);
+        // }
+        // for(let i=0; i<this.row; i++){
+        //     grid.moveTo(0,i*this.size);
+        //     grid.lineTo(window.innerWidth,i*this.size);
+        // }
+        // this.map.addChild(grid)
+        // //end
     }
 
     _createClass(Grid, [{
+        key: "initStartPage",
+        value: function initStartPage(options) {
+            var _this3 = this;
+
+            var event = {
+                click: 'click'
+            };
+            if (this.platform !== 'pc') {
+                event = {
+                    click: "tap"
+                };
+            }
+            this.startPage = new PIXI.Container();
+            var g = new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.start_page], new PIXI.Rectangle(0, 40, 800, 520)));
+            g.width = window.innerWidth;
+            g.height = window.innerHeight;
+            var startButton = new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.start_button]));
+            startButton.x = 100;
+            startButton.y = window.innerHeight - 300;
+            this.startPage.addChild(g);
+            this.startPage.addChild(startButton);
+            this.app.stage.addChild(this.startPage);
+            startButton.interactive = true;
+            startButton.on(event.click, function (event) {
+                startButton.visible = false;
+                notice("搜索房间中...");
+                Server.emit("search_room", { id: pid, name: pname });
+            });
+            this.restartPage = new PIXI.Container();
+            var restart = new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.restart_button]));
+            this.restartPage.addChild(restart);
+            restart.interactive = true;
+            restart.on(event.click, function (event) {
+                _this3.restartPage.visible = false;
+                // this.self.restart()
+                Server.emit("game_restart", { id: pid, name: pname });
+            });
+            this.restartPage.visible = false;
+            this.app.stage.addChild(this.restartPage);
+        }
+    }, {
         key: "initMap",
         value: function initMap(options) {
             this.map = new PIXI.Container();
@@ -976,12 +1208,12 @@ var Grid = function () {
             this.map.y = (window.innerHeight - options.height) / 2;
             this.app.stage.addChild(this.map);
             //add tile
-            this.map.addChild(new PIXI.extras.TilingSprite(new PIXI.Texture(PIXI.utils.TextureCache[res.maptile], new PIXI.Rectangle(mapTile.xStart, mapTile.yStart + mapTile.step * 2, mapTile.step, mapTile.step)), this.size * this.col, this.size * this.row));
+            this.map.addChild(new PIXI.extras.TilingSprite(new PIXI.Texture(PIXI.utils.TextureCache[res.maptile], new PIXI.Rectangle(mapTile.xStart, mapTile.yStart + mapTile.step * 0, mapTile.step, mapTile.step)), this.size * this.col, this.size * this.row));
         }
     }, {
         key: "addSelf",
         value: function addSelf() {
-            var _this = this;
+            var _this4 = this;
 
             var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { id: Math.random, isSelf: true, col: 1, row: 1 };
 
@@ -989,8 +1221,14 @@ var Grid = function () {
             player = new Player(data);
             player.addTo(this);
             this.self = player;
-            this.self.onKillPlayer = function (player) {
-                Server.socket.emit("kill_player", { id: _this.self.id, playerId: player.id });
+            player.onKillPlayer = function (player) {
+                Server.emit("kill_player", { id: _this4.self.id, playerId: player.id });
+            };
+            player.onRealKillPlayer = function (player) {
+                Server.emit("real_kill_player", { id: _this4.self.id, playerId: player.id });
+            };
+            player.onEatMedicine = function (medicine) {
+                Server.emit("eat_medicine", { medicineId: medicine.id, id: player.id });
             };
         }
     }, {
@@ -1020,23 +1258,32 @@ var Grid = function () {
             }
         }
     }, {
+        key: "clear",
+        value: function clear() {
+            this.players = [];
+            this.materials = [];
+            this.bubbles = [];
+            this.map.removeChildren(1, this.map.children.length);
+        }
+    }, {
         key: "initController",
         value: function initController() {
-            var _this2 = this;
+            var _this5 = this;
 
             var move = null,
-                currentDirection = Direction.LEFT;
+                currentDirection = Direction.DOWN;
             var ticker = this.ticker = new PIXI.ticker.Ticker();
             var playerMoving = {};
             var playerKeys = [];
+            var roomId = -1;
             var stop = function stop() {
                 move = null;
-                _this2.self.stopWalk();
-                Server.socket.emit("stop_walk", Object.assign({}, _this2.normalizePos(_this2.self.x, _this2.self.y), { direction: _this2.self.direction }));
+                _this5.self.stopWalk();
+                Server.emit("stop_walk", Object.assign({}, _this5.normalizePos(_this5.self.x, _this5.self.y), { direction: _this5.self.direction }));
             };
             var start = function start() {
-                _this2.self.faceTo(currentDirection);
-                Server.socket.emit("walk", Object.assign({}, _this2.normalizePos(_this2.self.x, _this2.self.y), { direction: _this2.self.direction }));
+                _this5.self.faceTo(currentDirection);
+                Server.emit("walk", Object.assign({}, _this5.normalizePos(_this5.self.x, _this5.self.y), { direction: _this5.self.direction }));
             };
             ticker.add(function (delta) {
                 move && move();
@@ -1045,110 +1292,92 @@ var Grid = function () {
                 });
             });
             ticker.start();
-            window.addEventListener("keydown", function (e) {
-                if (_this2.self.state !== PlayerState.NORMAL) return;
-                var keycode = e.code;
-                switch (keycode) {
+            var controler = new GameControler({ platform: this.platform });
+            controler.onDirectionChange = function (e) {
+                if (_this5.self.state !== PlayerState.NORMAL) return;
+                switch (e.direction) {
                     case 'ArrowLeft':
-                        move = _this2.self.moveLeft;
+                        move = _this5.self.moveLeft;
                         currentDirection = Direction.LEFT;
                         start();
                         break;
                     case 'ArrowRight':
-                        move = _this2.self.moveRight;
+                        move = _this5.self.moveRight;
                         currentDirection = Direction.RIGHT;
                         start();
                         break;
                     case 'ArrowUp':
-                        move = _this2.self.moveUp;
+                        move = _this5.self.moveUp;
                         currentDirection = Direction.UP;
                         start();
                         break;
                     case 'ArrowDown':
-                        move = _this2.self.moveDown;
+                        move = _this5.self.moveDown;
                         currentDirection = Direction.DOWN;
                         start();
                         break;
-                    case 'Space':
-                        var bubble = _this2.self.createBubble();
-                        Server.socket.emit("create_bubble", { id: _this2.self.id, col: bubble.col, row: bubble.row, bubbleId: bubble.id });
+                    case 'Center':
+                        stop();
+                        break;
+                }
+            };
+            controler.onAction = function (e) {
+                switch (e.action) {
+                    case "CreateBubble":
+                        var bubble = _this5.self.createBubble();
+                        if (!bubble) return;
+                        Server.emit("create_bubble", { id: _this5.self.id, col: bubble.col, row: bubble.row, bubbleId: bubble.id });
                         bubble.onDestroy = function () {
-                            Server.socket.emit("bubble_boom", { id: _this2.self.id, bubbleId: bubble.id });
+                            Server.emit("bubble_boom", { id: _this5.self.id, bubbleId: bubble.id });
                         };
                         break;
                 }
-            });
-            window.addEventListener("keyup", function (e) {
-                var keycode = e.code;
-                switch (keycode) {
-                    case 'Space':
-                        break;
-                    case 'ArrowLeft':
-                        if (currentDirection == Direction.LEFT) {
-                            stop();
-                        }
-                        break;
-                    case 'ArrowRight':
-                        if (currentDirection == Direction.RIGHT) {
-                            stop();
-                        }
-                        break;
-                    case 'ArrowUp':
-                        if (currentDirection == Direction.UP) {
-                            stop();
-                        }
-                        break;
-                    case 'ArrowDown':
-                        if (currentDirection == Direction.DOWN) {
-                            stop();
-                        }
-                        break;
-                }
-            });
-            Server.socket.on("player_walk", function (data) {
-                var player = _this2.players.find(function (item) {
+            };
+            Server.emit("join", { id: pid, name: pname });
+            Server.on("player_walk", function (data) {
+                var player = _this5.players.find(function (item) {
                     return item.id === data.id;
                 });
                 playerKeys = Object.keys(playerMoving);
                 if (!player) return;
                 player.faceTo(data.direction);
-                player.update({ x: data.x, y: data.y });
+                player.update(g.unNormalizePos(data.x, data.y));
                 switch (player.direction) {
                     case Direction.DOWN:
-                        playerMoving[player.id] = player.moveDown();
+                        playerMoving[player.id] = player.moveDown;
                         break;
                     case Direction.LEFT:
-                        playerMoving[player.id] = player.moveLeft();
+                        playerMoving[player.id] = player.moveLeft;
                         break;
                     case Direction.RIGHT:
-                        playerMoving[player.id] = player.moveRight();
+                        playerMoving[player.id] = player.moveRight;
                         break;
                     case Direction.UP:
-                        playerMoving[player.id] = player.moveUp();
+                        playerMoving[player.id] = player.moveUp;
                         break;
                     default:
                         playerMoving[player.id] = null;
                 }
             });
-            Server.socket.on("player_stop_walk", function (data) {
+            Server.on("player_stop_walk", function (data) {
                 var player = g.players.find(function (item) {
                     return item.id === data.id;
                 });
                 if (!player) return;
                 player.faceTo(data.direction);
-                player.update(_this2.unNormalizePos(data.x, data.y));
+                player.update(_this5.unNormalizePos(data.x, data.y));
                 player.stopWalk();
                 playerMoving[player.id] = null;
             });
-            Server.socket.on("player_create_bubble", function (data) {
-                var player = _this2.players.find(function (item) {
+            Server.on("player_create_bubble", function (data) {
+                var player = _this5.players.find(function (item) {
                     return item.id == data.id;
                 });
                 if (!player) return;
-                player.createBubble(data.bubbleId);
+                player.createBubble(data.bubbleId, data.col, data.row);
             });
-            Server.socket.on("player_bubble_boom", function (data) {
-                var player = _this2.players.find(function (item) {
+            Server.on("player_bubble_boom", function (data) {
+                var player = _this5.players.find(function (item) {
                     return item.id == data.id;
                 });
                 if (!player) return;
@@ -1158,15 +1387,106 @@ var Grid = function () {
                 if (!bubble) return;
                 bubble.boomNow();
             });
-            Server.socket.on("player_kill_player", function (data) {
-                var player1 = _this2.players.find(function (item) {
+            Server.on("player_kill_player", function (data) {
+                var player1 = _this5.players.find(function (item) {
                     return item.id == data.id;
                 });
-                var player2 = _this2.players.find(function (item) {
+                var player2 = _this5.players.find(function (item) {
                     return item.id == data.playerId;
                 });
                 if (player1 && player2) {
                     player1.kill(player2);
+                }
+            });
+            Server.on("player_real_kill_player", function (data) {
+                var player1 = _this5.players.find(function (item) {
+                    return item.id == data.id;
+                });
+                var player2 = _this5.players.find(function (item) {
+                    return item.id == data.playerId;
+                });
+                if (player1 && player2) {
+                    player1.realKill(player2);
+                    if (player2 == _this5.self) {
+                        // this.restartPage.visible=true;
+                        notice(player1.name + " kill you!");
+                    }
+                }
+            });
+            Server.on("game_start", function (data) {
+                _this5.startPage.visible = false;
+                GameSound.play("readygo");
+                GameSound.play("water", { loop: true });
+                GameSound.pause("home");
+            });
+            Server.on("game_restart", function () {
+                _this5.clear();
+                Server.emit("join_room", { id: roomId });
+            });
+            Server.on("join_success", function (data) {
+                notice("本机成功加入,等待玩家中...");
+                loadMap(_this5, map, data.medicines);
+                _this5.addSelf({ col: data.col, row: data.row, id: data.id, name: data.name, isSelf: true, team: data.team });
+                if (_this5.platform !== 'pc') {
+                    controler.attachDirectionControler(_this5.map, 40, _this5.map.height - 360);
+                    controler.attachActionControler(_this5.map, _this5.map.width - 220, _this5.map.height - 260);
+                }
+                stop();
+                roomId = data.roomId;
+                //初始化 获取用户列表
+                data.players.forEach(function (item) {
+                    if (_this5.self.id != item.id) {
+                        new Player(Object.assign({ id: item.id }, g.unNormalizePos(item.x, item.y), { name: item.name, team: item.team })).addTo(g);
+                    }
+                });
+                Server.on("player_join", function (data) {
+                    notice(data.name + " 加入房间");
+                    new Player({ id: data.id, row: data.row, col: data.col, name: data.name, team: data.team }).addTo(_this5);
+                });
+            });
+            Server.on("s_gameover", function (_ref) {
+                var winner = _ref.winner;
+
+                if (winner[0].team == _this5.self.team) {
+                    notice("胜利");
+                } else {
+                    notice("失败");
+                }
+                _this5.restartPage.visible = true;
+            });
+            Server.on("player_restart", function (data) {
+                notice(data.name + "复活");
+                var player1 = _this5.players.find(function (item) {
+                    return item.id == data.id;
+                });
+                if (player1) {
+                    player1.restart();
+                }
+            });
+            Server.on("player_leave", function (_ref2) {
+                var id = _ref2.id;
+
+                var player = _this5.players.find(function (item) {
+                    return item.id == id;
+                });
+                if (player) {
+                    notice(player.name + "离开房间");
+                }
+            });
+            Server.on("player_eat_medicine", function (_ref3) {
+                var id = _ref3.id,
+                    medicineId = _ref3.medicineId;
+
+                for (var i = 0, j = _this5.materials.length; i < j; i++) {
+                    if (_this5.materials[i] && _this5.materials[i].id == medicineId) {
+                        var _player = _this5.players.find(function (item) {
+                            return item.id == id;
+                        });
+                        if (_player) {
+                            _this5.materials[i].eatByPlayer(_player);
+                        }
+                        break;
+                    }
                 }
             });
         }
@@ -1179,14 +1499,14 @@ var Grid = function () {
                     materials.push(this.materials[i]);
                 }
             }
-            for (var _i2 = 0, _l = this.bubbles.length; _i2 < _l; _i2++) {
-                if (betweenRange(this.bubbles[_i2].col, col) && betweenRange(this.bubbles[_i2].row, row)) {
-                    materials.push(this.bubbles[_i2]);
+            for (var _i = 0, _l = this.bubbles.length; _i < _l; _i++) {
+                if (betweenRange(this.bubbles[_i].col, col) && betweenRange(this.bubbles[_i].row, row)) {
+                    materials.push(this.bubbles[_i]);
                 }
             }
-            for (var _i3 = 0, _l2 = this.players.length; _i3 < _l2; _i3++) {
-                if (betweenRange(this.players[_i3].col, col) && betweenRange(this.players[_i3].row, row) && !this.players[_i3].isSelf) {
-                    materials.push(this.players[_i3]);
+            for (var _i2 = 0, _l2 = this.players.length; _i2 < _l2; _i2++) {
+                if (betweenRange(this.players[_i2].col, col) && betweenRange(this.players[_i2].row, row) && !this.players[_i2].isSelf) {
+                    materials.push(this.players[_i2]);
                 }
             }
             return materials;
@@ -1219,6 +1539,15 @@ var Grid = function () {
 
     return Grid;
 }();
+
+var Bound = function Bound(props) {
+    _classCallCheck(this, Bound);
+
+    this.x = props.x;
+    this.y = props.y;
+    this.w = props.w;
+    this.h = props.h;
+};
 //网格中的物体
 
 
@@ -1228,23 +1557,23 @@ var Material = function (_Bound) {
     function Material(props) {
         _classCallCheck(this, Material);
 
-        var _this3 = _possibleConstructorReturn(this, (Material.__proto__ || Object.getPrototypeOf(Material)).call(this, props));
+        var _this6 = _possibleConstructorReturn(this, (Material.__proto__ || Object.getPrototypeOf(Material)).call(this, props));
 
-        _this3.col = props.col;
-        _this3.row = props.row;
-        _this3.destructible = props.destructible;
-        _this3.passable = props.passable;
-        _this3.z = props.z || 10;
-        _this3.ele;
-        _this3.grid;
-        _this3.basicTexture = null;
-        _this3.destroyed = false;
-        _this3.scalex = _this3.scaley = 0.9;
-        _this3.offseth = 6;
-        _this3.offsetw = 0;
-        _this3.id = props.id || Math.random();
-        _this3.onDestroy = null;
-        return _this3;
+        _this6.col = props.col;
+        _this6.row = props.row;
+        _this6.destructible = props.destructible;
+        _this6.passable = props.passable;
+        _this6.z = props.z || 10;
+        _this6.ele;
+        _this6.grid;
+        _this6.basicTexture = props.texture;
+        _this6.destroyed = false;
+        _this6.scalex = _this6.scaley = 0.9;
+        _this6.offseth = 6;
+        _this6.offsetw = 0;
+        _this6.id = props.id || Math.random();
+        _this6.onDestroy = null;
+        return _this6;
     }
 
     _createClass(Material, [{
@@ -1279,6 +1608,14 @@ var Material = function (_Bound) {
             var tileSize = this.grid.size;
             var xsize = tileSize * this.scalex;
             var ysize = tileSize * this.scaley;
+            if (this.col == undefined || this.row == undefined) {
+                var _getColRow2 = this.getColRow(),
+                    col = _getColRow2.col,
+                    row = _getColRow2.row;
+
+                this.col = col;
+                this.row = row;
+            }
             return {
                 x: this.col * tileSize + (tileSize - xsize) / 2,
                 y: this.row * tileSize + (tileSize - ysize) / 2,
@@ -1311,10 +1648,28 @@ var Material = function (_Bound) {
             this.ele.destroy();
             this.onDestroy && this.onDestroy();
         }
+    }, {
+        key: "getColRow",
+        value: function getColRow() {
+            var _getColRow3 = _getColRow(this.x + this.w / 2, this.y + this.h / 2, this.grid.size),
+                col = _getColRow3.col,
+                row = _getColRow3.row;
+
+            return { col: col, row: row };
+        }
     }]);
 
     return Material;
 }(Bound);
+//for Player's Sprite
+
+
+var x_start = 29,
+    x_step = 100,
+    y_start = 40,
+    y_step = 100,
+    w = 42,
+    h = 60;
 
 var Player = function (_Material) {
     _inherits(Player, _Material);
@@ -1326,59 +1681,91 @@ var Player = function (_Material) {
             //Player
             speed: defaultProps.size / 10,
             direction: null,
-            maxBubbleCount: 10,
-            bubbleRadius: 2,
+            maxBubbleCount: 1,
+            bubbleRadius: 1,
             state: PlayerState.NORMAL,
             passable: true
         }, props);
 
-        var _this4 = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
+        var _this7 = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
 
-        _this4.speed = options.speed;
-        _this4.direction = options.direction;
-        _this4.maxBubbleCount = options.maxBubbleCount;
-        _this4.bubbleRadius = options.bubbleRadius;
-        _this4.bubbles = [
+        _this7.speed = options.speed;
+        _this7.direction = options.direction;
+        _this7.maxBubbleCount = options.maxBubbleCount;
+        _this7.bubbleRadius = options.bubbleRadius;
+        _this7.team = options.team;
+        _this7.bubbles = [
             //Bubble
         ];
-        _this4.medicines = [];
-        _this4.state = options.state;
-        _this4.isSelf = props.isSelf || false;
+        _this7.medicines = [];
+        _this7.state = options.state;
+        _this7.isSelf = props.isSelf || false;
+        _this7.name = props.name;
         //绑定对象
-        _this4.moveLeft = _this4.moveLeft.bind(_this4);
-        _this4.moveRight = _this4.moveRight.bind(_this4);
-        _this4.moveUp = _this4.moveUp.bind(_this4);
-        _this4.moveDown = _this4.moveDown.bind(_this4);
-        _this4.basicTexture = PIXI.utils.TextureCache[res.male_red_1];
-        _this4.scalex = 0.7;
-        _this4.scaley = 0.8;
-        _this4.onKillPlayer = null;
-        return _this4;
+        _this7.moveLeft = _this7.moveLeft.bind(_this7);
+        _this7.moveRight = _this7.moveRight.bind(_this7);
+        _this7.moveUp = _this7.moveUp.bind(_this7);
+        _this7.moveDown = _this7.moveDown.bind(_this7);
+        var src = '';
+        switch (options.team) {
+            case 'red':
+                src = res.male_red_1;
+                break;
+            case 'blue':
+                src = res.male_blue;
+                break;
+            case 'black':
+                src = res.male_black;
+                break;
+            default:
+                src = res.male_red_1;
+        }
+        _this7.basicTexture = PIXI.utils.TextureCache[src];
+        _this7.scalex = 0.6;
+        _this7.scaley = 0.7;
+        _this7.onKillPlayer = null;
+        _this7.onRealKillPlayer = null;
+        _this7.onEatMedicine = null;
+        return _this7;
     }
 
     _createClass(Player, [{
         key: "render",
         value: function render() {
             var g = new PIXI.extras.AnimatedSprite([this.getFrame(x_start, y_start, w, h)]);
-            g.x = this.x - this.offsetw;
-            g.y = this.y - this.offseth;
+            g.x = 0;
+            g.y = 0;
             g.width = this.w + this.offsetw;
             g.height = this.h + this.offseth;
             g.animationSpeed = 0.2;
             g.loop = true;
-            return g;
+            var container = new PIXI.Container();
+            container.x = this.x - this.offsetw;
+            container.y = this.y - this.offseth;
+            var text = new PIXI.Text(this.name, { fontFamily: 'Arial', fontSize: 12, fill: 0xf5f500, align: 'center' });
+            text.x = 0;
+            text.y = -14;
+            container.addChild(g);
+            container.addChild(text);
+            this.animateSprite = g;
+            return container;
         }
     }, {
         key: "createBubble",
-        value: function createBubble(id) {
+        value: function createBubble(id, icol, irow) {
             GameSound.play("uinormal");
-            if (this.bubbles.length >= this.maxBubbleCount) return;
+            if (this.bubbles.length >= this.maxBubbleCount) return null;
+            var colandrow = null;
+            if (icol != undefined || irow != undefined) {
+                colandrow = { col: icol, row: irow };
+            } else {
+                var _getColRow4 = _getColRow(this.x + this.w / 2, this.y + this.w / 2, this.grid.size),
+                    col = _getColRow4.col,
+                    row = _getColRow4.row;
 
-            var _getColRow = getColRow(this.x + this.w / 2, this.y + this.w / 2, this.grid.size),
-                col = _getColRow.col,
-                row = _getColRow.row;
-
-            var b = new Bubble({ col: col, row: row, player: this, id: id });
+                colandrow = { col: col, row: row };
+            }
+            var b = new Bubble({ col: colandrow.col, row: colandrow.row, player: this, id: id });
             this.bubbles.push(b);
             b.addTo(this.grid);
             return b;
@@ -1399,13 +1786,13 @@ var Player = function (_Material) {
     }, {
         key: "stopWalk",
         value: function stopWalk() {
-            this.ele.stop();
+            this.animateSprite.stop();
         }
     }, {
         key: "faceTo",
         value: function faceTo(direction) {
             if (this.direction === direction) {
-                this.ele.play();
+                this.animateSprite.play();
                 return;
             }
             var yStart = y_start;
@@ -1428,82 +1815,82 @@ var Player = function (_Material) {
                 var frame = this.getFrame(x_start + i * x_step, yStart, w, h);
                 frameArray.push(frame);
             }
-            this.ele.textures = frameArray;
-            this.ele.play();
+            this.animateSprite.textures = frameArray;
+            this.animateSprite.play();
         }
     }, {
         key: "leftTest",
         value: function leftTest() {
-            var _this5 = this;
-
-            var _getColRow2 = getColRow(this.x + this.w / 2, this.y + this.h / 2, this.grid.size),
-                col = _getColRow2.col,
-                row = _getColRow2.row;
-
-            this.col = col;
-            this.row = row;
-            var m = this.grid.getMaterialByColRow(col - 1, [row - 1, row + 1]);
-            return m.filter(function (item) {
-                return hitTestRectangle(item, _this5);
-            });
-        }
-    }, {
-        key: "rightTest",
-        value: function rightTest() {
-            var _this6 = this;
-
-            var _getColRow3 = getColRow(this.x + this.w / 2, this.y + this.h / 2, this.grid.size),
-                col = _getColRow3.col,
-                row = _getColRow3.row;
-
-            this.col = col;
-            this.row = row;
-            var m = this.grid.getMaterialByColRow(col + 1, [row - 1, row + 1]);
-            return m.filter(function (item) {
-                return hitTestRectangle(item, _this6);
-            });
-        }
-    }, {
-        key: "upTest",
-        value: function upTest() {
-            var _this7 = this;
-
-            var _getColRow4 = getColRow(this.x + this.w / 2, this.y + this.h / 2, this.grid.size),
-                col = _getColRow4.col,
-                row = _getColRow4.row;
-
-            this.col = col;
-            this.row = row;
-            var m = this.grid.getMaterialByColRow([col - 1, col + 1], row - 1);
-            return m.filter(function (item) {
-                return hitTestRectangle(item, _this7);
-            });
-        }
-    }, {
-        key: "downTest",
-        value: function downTest() {
             var _this8 = this;
 
-            var _getColRow5 = getColRow(this.x + this.w / 2, this.y + this.h / 2, this.grid.size),
+            var _getColRow5 = _getColRow(this.x + this.w / 2, this.y + this.h / 2, this.grid.size),
                 col = _getColRow5.col,
                 row = _getColRow5.row;
 
             this.col = col;
             this.row = row;
-            var m = this.grid.getMaterialByColRow([col - 1, col + 1], row + 1);
+            var m = this.grid.getMaterialByColRow(col - 1, [row - 1, row + 1]);
             return m.filter(function (item) {
                 return hitTestRectangle(item, _this8);
             });
         }
     }, {
+        key: "rightTest",
+        value: function rightTest() {
+            var _this9 = this;
+
+            var _getColRow6 = _getColRow(this.x + this.w / 2, this.y + this.h / 2, this.grid.size),
+                col = _getColRow6.col,
+                row = _getColRow6.row;
+
+            this.col = col;
+            this.row = row;
+            var m = this.grid.getMaterialByColRow(col + 1, [row - 1, row + 1]);
+            return m.filter(function (item) {
+                return hitTestRectangle(item, _this9);
+            });
+        }
+    }, {
+        key: "upTest",
+        value: function upTest() {
+            var _this10 = this;
+
+            var _getColRow7 = _getColRow(this.x + this.w / 2, this.y + this.h / 2, this.grid.size),
+                col = _getColRow7.col,
+                row = _getColRow7.row;
+
+            this.col = col;
+            this.row = row;
+            var m = this.grid.getMaterialByColRow([col - 1, col + 1], row - 1);
+            return m.filter(function (item) {
+                return hitTestRectangle(item, _this10);
+            });
+        }
+    }, {
+        key: "downTest",
+        value: function downTest() {
+            var _this11 = this;
+
+            var _getColRow8 = _getColRow(this.x + this.w / 2, this.y + this.h / 2, this.grid.size),
+                col = _getColRow8.col,
+                row = _getColRow8.row;
+
+            this.col = col;
+            this.row = row;
+            var m = this.grid.getMaterialByColRow([col - 1, col + 1], row + 1);
+            return m.filter(function (item) {
+                return hitTestRectangle(item, _this11);
+            });
+        }
+    }, {
         key: "moveLeft",
         value: function moveLeft() {
-            var _this9 = this;
+            var _this12 = this;
 
             this.x -= this.speed;
             var hit = this.leftTest();
             if (hit.some(function (item) {
-                _this9.checkHit(item);
+                _this12.checkHit(item);
                 return !item.passable;
             })) {
                 this.x += this.speed;
@@ -1514,12 +1901,12 @@ var Player = function (_Material) {
     }, {
         key: "moveRight",
         value: function moveRight() {
-            var _this10 = this;
+            var _this13 = this;
 
             this.x += this.speed;
             var hit = this.rightTest();
             if (hit.some(function (item) {
-                _this10.checkHit(item);
+                _this13.checkHit(item);
                 return !item.passable;
             })) {
                 this.x -= this.speed;
@@ -1530,12 +1917,12 @@ var Player = function (_Material) {
     }, {
         key: "moveUp",
         value: function moveUp() {
-            var _this11 = this;
+            var _this14 = this;
 
             this.y -= this.speed;
             var hit = this.upTest();
             if (hit.some(function (item) {
-                _this11.checkHit(item);
+                _this14.checkHit(item);
                 return !item.passable;
             })) {
                 this.y += this.speed;
@@ -1546,12 +1933,12 @@ var Player = function (_Material) {
     }, {
         key: "moveDown",
         value: function moveDown() {
-            var _this12 = this;
+            var _this15 = this;
 
             this.y += this.speed;
             var hit = this.downTest();
             if (hit.some(function (item) {
-                _this12.checkHit(item);
+                _this15.checkHit(item);
                 return !item.passable;
             })) {
                 this.y -= this.speed;
@@ -1559,13 +1946,37 @@ var Player = function (_Material) {
             }
             this.ele.y = this.y - this.offseth;
         }
+    }, {
+        key: "changeState",
+        value: function changeState(state) {
+            var _this16 = this;
+
+            this.state = state;
+            switch (state) {
+                case PlayerState.FALL:
+                    this.ele.children[0].alpha = 0.5;
+                    break;
+                case PlayerState.DIE:
+                    var frames = [new PIXI.Texture(PIXI.utils.TextureCache[res.playerfall1]), new PIXI.Texture(PIXI.utils.TextureCache[res.playerfall2]), new PIXI.Texture(PIXI.utils.TextureCache[res.playerfall3]), new PIXI.Texture(PIXI.utils.TextureCache[res.playerfall4]), new PIXI.Texture(PIXI.utils.TextureCache[res.playerfall5])];
+                    var _b = new PIXI.extras.AnimatedSprite(frames);
+                    _b.animationSpeed = 0.2;
+                    _b.loop = true;
+                    _b.width = this.w + this.offsetw;
+                    _b.height = this.h + this.offseth;
+                    _b.play();
+                    this.ele.addChild(_b);
+                    setTimeout(function () {
+                        _this16.ele.removeChildren();
+                    }, 500);
+                    break;
+            }
+        }
         //击倒
 
     }, {
         key: "kill",
         value: function kill(player) {
-            player.state = PlayerState.FALL;
-            player.ele.scale = new PIXI.Point(1.2, 1.2);
+            player.changeState(PlayerState.FALL);
             this.onKillPlayer && this.onKillPlayer(player);
         }
         //击杀
@@ -1573,14 +1984,23 @@ var Player = function (_Material) {
     }, {
         key: "realKill",
         value: function realKill(player) {
-            player.state = PlayerState.DIE;
-            alert("die!!!");
+            player.changeState(PlayerState.DIE);
+            GameSound.play("playerboom");
+            this.onRealKillPlayer && this.onRealKillPlayer(player);
+        }
+    }, {
+        key: "restart",
+        value: function restart() {
+            this.state = PlayerState.NORMAL;
+            this.ele.scale = new PIXI.Point(1, 1);
         }
     }, {
         key: "checkHit",
         value: function checkHit(material) {
+            if (!this.isSelf) return;
             if (material instanceof Medicine) {
                 material.eatByPlayer(this);
+                this.onEatMedicine && this.onEatMedicine(material);
             } else if (material instanceof Player) {
                 if (material.state === PlayerState.FALL) {
                     this.realKill(material);
@@ -1594,6 +2014,13 @@ var Player = function (_Material) {
             this.y = data.y;
             this.ele.x = this.x - this.offsetw;
             this.ele.y = this.y - this.offseth;
+
+            var _getColRow9 = _getColRow(this.x + this.w / 2, this.y + this.h / 2, this.grid.size),
+                col = _getColRow9.col,
+                row = _getColRow9.row;
+
+            this.col = col;
+            this.row = row;
         }
     }]);
 
@@ -1613,11 +2040,11 @@ var Stone = function (_Material2) {
             passable: false
         }, props);
 
-        var _this13 = _possibleConstructorReturn(this, (Stone.__proto__ || Object.getPrototypeOf(Stone)).call(this, options));
+        var _this17 = _possibleConstructorReturn(this, (Stone.__proto__ || Object.getPrototypeOf(Stone)).call(this, options));
 
-        _this13.basicTexture = props.texture;
-        _this13.scalex = _this13.scaley = 1;
-        return _this13;
+        _this17.basicTexture = props.texture;
+        _this17.scalex = _this17.scaley = 1;
+        return _this17;
     }
 
     return Stone;
@@ -1636,10 +2063,10 @@ var Mask = function (_Material3) {
             passable: true
         }, props);
 
-        var _this14 = _possibleConstructorReturn(this, (Mask.__proto__ || Object.getPrototypeOf(Mask)).call(this, options));
+        var _this18 = _possibleConstructorReturn(this, (Mask.__proto__ || Object.getPrototypeOf(Mask)).call(this, options));
 
-        _this14.basicTexture = new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2], new PIXI.Rectangle(61, 0, 62, 70));
-        return _this14;
+        _this18.basicTexture = new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2], new PIXI.Rectangle(61, 0, 62, 70));
+        return _this18;
     }
 
     return Mask;
@@ -1659,19 +2086,19 @@ var Bubble = function (_Material4) {
             duration: 3
         }, props);
 
-        var _this15 = _possibleConstructorReturn(this, (Bubble.__proto__ || Object.getPrototypeOf(Bubble)).call(this, options));
+        var _this19 = _possibleConstructorReturn(this, (Bubble.__proto__ || Object.getPrototypeOf(Bubble)).call(this, options));
 
-        _this15.player = options.player;
-        _this15.duration = options.duration;
-        _this15.basicTexture = new PIXI.Texture(PIXI.utils.TextureCache[res.bubble_normal], new PIXI.Rectangle(0, 0, 64, 64));
-        _this15.isSelfs = _this15.player === _this15.player.grid.self;
-        if (_this15.isSelfs) {
-            _this15.timeout = setTimeout(function () {
-                _this15.boom();
-            }, _this15.duration * 1000);
+        _this19.player = options.player;
+        _this19.duration = options.duration;
+        _this19.basicTexture = PIXI.utils.TextureCache[res.bubble_normal];
+        _this19.isSelfs = _this19.player === _this19.player.grid.self;
+        if (_this19.isSelfs) {
+            _this19.timeout = setTimeout(function () {
+                _this19.boom();
+            }, _this19.duration * 1000);
         }
-        _this15.boomed = false;
-        return _this15;
+        _this19.boomed = false;
+        return _this19;
     }
     //@overide 重写，被气球击中会触发boom
 
@@ -1687,13 +2114,17 @@ var Bubble = function (_Material4) {
         key: "render",
         value: function render() {
             var g = new PIXI.Container();
-            var s = new PIXI.Sprite(this.basicTexture);
+            var frames = [new PIXI.Texture(this.basicTexture, new PIXI.Rectangle(16, 18, 45, 47)), new PIXI.Texture(this.basicTexture, new PIXI.Rectangle(85, 18, 45, 47)), new PIXI.Texture(this.basicTexture, new PIXI.Rectangle(155, 18, 48, 47)), new PIXI.Texture(this.basicTexture, new PIXI.Rectangle(85, 18, 45, 47))];
+            var s = new PIXI.extras.AnimatedSprite(frames);
+            s.animationSpeed = 0.06;
+            s.loop = true;
+            s.play();
             g.addChild(s);
-            s.x = this.x;
-            s.y = this.y;
-            s.width = this.w;
-            s.height = this.h;
-            return s;
+            g.x = this.x - this.offsetw;
+            g.y = this.y - this.offseth;
+            g.width = s.width = this.w + this.offsetw;
+            g.height = s.width = this.h + this.offseth;
+            return g;
         }
         //boom without timeout
 
@@ -1707,14 +2138,14 @@ var Bubble = function (_Material4) {
     }, {
         key: "boom",
         value: function boom() {
-            var _this16 = this;
+            var _this20 = this;
 
             this.onDestroy && this.onDestroy();
             this.boomed = true; //boom必须提前与calcBoomBound 否则死循环
             GameSound.play("bubbleboom");
             this.drawBoom();
             setTimeout(function () {
-                _this16.player.deleteBubble(_this16);
+                _this20.player.deleteBubble(_this20);
             }, 500);
         }
         //绘制爆炸效果
@@ -1731,7 +2162,7 @@ var Bubble = function (_Material4) {
             var tyS = 64;
             var left = new PIXI.Sprite(new PIXI.Texture(texture, new PIXI.Rectangle(txS * 2, 0, txS + 1, tyS))),
                 right = new PIXI.Sprite(new PIXI.Texture(texture, new PIXI.Rectangle(txS * 3, 0, txS - 1, tyS))),
-                up = new PIXI.Sprite(new PIXI.Texture(texture, new PIXI.Rectangle(txS * 0, 0, txS, tyS - 2))),
+                up = new PIXI.Sprite(new PIXI.Texture(texture, new PIXI.Rectangle(txS * 0, 0, txS, tyS - 8))),
                 down = new PIXI.Sprite(new PIXI.Texture(texture, new PIXI.Rectangle(txS * 1 + 1, 0, txS, tyS))),
                 row = new PIXI.extras.TilingSprite(new PIXI.Texture(texture, new PIXI.Rectangle(txS * 4, 0, txS, tyS)), bound[0].w - 2 * tileSize, tyS),
                 col = new PIXI.extras.TilingSprite(new PIXI.Texture(texture, new PIXI.Rectangle(txS * 6 - 1, 0, txS, tyS - 10)), txS, bound[1].h - 2 * tileSize);
@@ -1747,10 +2178,18 @@ var Bubble = function (_Material4) {
             row.y = left.y;
             col.x = up.x;
             col.y = up.y + tileSize;
-            g.addChild.apply(g, [left, row, right]);
+            left.width = right.width = tileSize;
+            up.height = down.height = tileSize;
+            g.addChild.apply(g, [left, row, right, up, down, col]);
             // //for debug
             //    let s=new PIXI.Graphics();
             //    s.lineStyle(1,0xf1f1f1);
+            //    s.drawRect(up.x,up.y,up.width,up.height)
+            //    s.drawRect(col.x,col.y,col.width,col.height)
+            //    s.drawRect(down.x,down.y,down.width,down.height)
+            //    s.drawRect(left.x,left.y,left.width,left.height)
+            //    s.drawRect(row.x,row.y,row.width,row.height)
+            //    s.drawRect(right.x,right.y,right.width,right.height)
             //    s.drawRect(bound[0].x,bound[1].y,bound[0].w,bound[1].h)
             //    g.addChild(s)
         }
@@ -1759,7 +2198,7 @@ var Bubble = function (_Material4) {
     }, {
         key: "calcBoomBound",
         value: function calcBoomBound() {
-            var _this17 = this;
+            var _this21 = this;
 
             var bubbleRadius = this.player.bubbleRadius;
             var tileSize = this.player.grid.size;
@@ -1771,11 +2210,11 @@ var Bubble = function (_Material4) {
                 down = { col: this.col, row: this.row + bubbleRadius + 1 };
             rowMaterial.forEach(function (item) {
                 if (item.passable) return;
-                if (item.col < _this17.col) {
+                if (item.col < _this21.col) {
                     if (item.col > left.col) {
                         left = item;
                     }
-                } else if (item.col > _this17.col) {
+                } else if (item.col > _this21.col) {
                     if (item.col < right.col) {
                         right = item;
                     }
@@ -1783,11 +2222,11 @@ var Bubble = function (_Material4) {
             });
             colMaterial.forEach(function (item) {
                 if (item.passable) return;
-                if (item.row < _this17.row) {
+                if (item.row < _this21.row) {
                     if (item.row > up.row) {
                         up = item;
                     }
-                } else if (item.row > _this17.row) {
+                } else if (item.row > _this21.row) {
                     if (item.row < down.row) {
                         down = item;
                     }
@@ -1803,25 +2242,25 @@ var Bubble = function (_Material4) {
                 var players = this.player.grid.players;
                 players.forEach(function (player) {
                     if (player.row === left.row && player.col >= leftCol && player.col <= rightCol || player.col === up.col && player.row >= upRow && player.row <= downRow) {
-                        _this17.player.kill(player);
-                    }
-                });
-                var arr = [left, right, up, down];
-                arr.forEach(function (m) {
-                    if (m.destructible) {
-                        m.destroy();
-                        if (m == left) {
-                            leftCol -= 1;
-                        } else if (m == right) {
-                            rightCol += 1;
-                        } else if (m == up) {
-                            upRow -= 1;
-                        } else {
-                            downRow += 1;
-                        }
+                        _this21.player.kill(player);
                     }
                 });
             }
+            var arr = [left, right, up, down];
+            arr.forEach(function (m) {
+                if (m.destructible) {
+                    m.destroy();
+                    if (m == left) {
+                        leftCol -= 1;
+                    } else if (m == right) {
+                        rightCol += 1;
+                    } else if (m == up) {
+                        upRow -= 1;
+                    } else {
+                        downRow += 1;
+                    }
+                }
+            });
             //end
             return [new Bound({
                 x: (leftCol - this.col) * tileSize,
@@ -1843,21 +2282,22 @@ var Bubble = function (_Material4) {
 var Medicine = function (_Material5) {
     _inherits(Medicine, _Material5);
 
+    // container:Stone;
     function Medicine(props) {
         _classCallCheck(this, Medicine);
 
-        var _this18 = _possibleConstructorReturn(this, (Medicine.__proto__ || Object.getPrototypeOf(Medicine)).call(this, Object.assign({
+        // this.container=props.container;
+        // this.row=props.row;
+        // this.col=props.col;
+        // this.z=this.container.z-1;
+        var _this22 = _possibleConstructorReturn(this, (Medicine.__proto__ || Object.getPrototypeOf(Medicine)).call(this, Object.assign({
             destructible: false,
             passable: true
         }, props)));
 
-        _this18.container = props.container;
-        _this18.row = _this18.container.row;
-        _this18.col = _this18.container.col;
-        _this18.z = _this18.container.z - 1;
-        _this18.scalex = 0.7;
-        _this18.scaley = 0.8;
-        return _this18;
+        _this22.scalex = 0.6;
+        _this22.scaley = 0.7;
+        return _this22;
     }
 
     _createClass(Medicine, [{
@@ -1875,28 +2315,79 @@ var Medicine = function (_Material5) {
     return Medicine;
 }(Material);
 
-var Medicine1 = function (_Medicine) {
-    _inherits(Medicine1, _Medicine);
+var AddSpeed = function (_Medicine) {
+    _inherits(AddSpeed, _Medicine);
 
-    function Medicine1(props) {
-        _classCallCheck(this, Medicine1);
+    function AddSpeed(props) {
+        _classCallCheck(this, AddSpeed);
 
-        var _this19 = _possibleConstructorReturn(this, (Medicine1.__proto__ || Object.getPrototypeOf(Medicine1)).call(this, props));
+        var _this23 = _possibleConstructorReturn(this, (AddSpeed.__proto__ || Object.getPrototypeOf(AddSpeed)).call(this, props));
 
-        _this19.basicTexture = new PIXI.Texture(PIXI.utils.TextureCache[res.medicine], new PIXI.Rectangle(0, 0, 32, 64));
-        return _this19;
+        _this23.basicTexture = new PIXI.Texture(PIXI.utils.TextureCache[res.medicine], new PIXI.Rectangle(0, 0, 32, 64));
+        return _this23;
     }
     //overide   
 
 
-    _createClass(Medicine1, [{
+    _createClass(AddSpeed, [{
         key: "changePlayerAttr",
         value: function changePlayerAttr(player) {
-            player.speed += 10;
+            player.speed += 1;
+            notice("移动速度增加");
         }
     }]);
 
-    return Medicine1;
+    return AddSpeed;
+}(Medicine);
+
+var AddBubble = function (_Medicine2) {
+    _inherits(AddBubble, _Medicine2);
+
+    function AddBubble(props) {
+        _classCallCheck(this, AddBubble);
+
+        var _this24 = _possibleConstructorReturn(this, (AddBubble.__proto__ || Object.getPrototypeOf(AddBubble)).call(this, props));
+
+        _this24.basicTexture = new PIXI.Texture(PIXI.utils.TextureCache[res.medicine], new PIXI.Rectangle(0, 0, 32, 64));
+        return _this24;
+    }
+    //overide   
+
+
+    _createClass(AddBubble, [{
+        key: "changePlayerAttr",
+        value: function changePlayerAttr(player) {
+            player.maxBubbleCount += 1;
+            notice("泡泡数量增加");
+        }
+    }]);
+
+    return AddBubble;
+}(Medicine);
+
+var AddBubbleRadius = function (_Medicine3) {
+    _inherits(AddBubbleRadius, _Medicine3);
+
+    function AddBubbleRadius(props) {
+        _classCallCheck(this, AddBubbleRadius);
+
+        var _this25 = _possibleConstructorReturn(this, (AddBubbleRadius.__proto__ || Object.getPrototypeOf(AddBubbleRadius)).call(this, props));
+
+        _this25.basicTexture = new PIXI.Texture(PIXI.utils.TextureCache[res.medicine], new PIXI.Rectangle(0, 0, 32, 64));
+        return _this25;
+    }
+    //overide   
+
+
+    _createClass(AddBubbleRadius, [{
+        key: "changePlayerAttr",
+        value: function changePlayerAttr(player) {
+            player.bubbleRadius += 1;
+            notice("泡泡范围增加");
+        }
+    }]);
+
+    return AddBubbleRadius;
 }(Medicine);
 
 var Server = {
@@ -1907,6 +2398,9 @@ var Server = {
     emit: function emit(type, data) {
         var socket = Server.socket;
         socket.emit(type, data);
+    },
+    on: function on(type, callback) {
+        Server.socket.on(type, callback);
     }
 };
 //rectangle hit test
@@ -1954,7 +2448,7 @@ function hitTestRectangle(r1, r2) {
 }
 ;
 //get col and row by centerx,centery and tile's size
-function getColRow(x, y, size) {
+function _getColRow(x, y, size) {
     return {
         col: Math.floor(x / size), row: Math.floor(y / size)
     };
@@ -1972,6 +2466,33 @@ function betweenRange(value, range) {
     }
     return false;
 }
+function toggleFullScreen(ele) {
+    if (!document.mozFullScreen && !document.webkitIsFullScreen) {
+        if (ele.mozRequestFullScreen) {
+            ele.mozRequestFullScreen();
+        } else {
+            ele.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        }
+    } else {
+        if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else {
+            document.webkitExitFullscreen();
+        }
+    }
+}
+function IsPC() {
+    var userAgentInfo = navigator.userAgent;
+    var Agents = ["Android", "iPhone", "SymbianOS", "Windows Phone", "iPad", "iPod"];
+    var flag = true;
+    for (var v = 0; v < Agents.length; v++) {
+        if (userAgentInfo.indexOf(Agents[v]) > 0) {
+            flag = false;
+            break;
+        }
+    }
+    return flag;
+}
 //load image resource
 function loadRes(callback) {
     var resource = Object.keys(res).map(function (key) {
@@ -1982,50 +2503,32 @@ function loadRes(callback) {
         PIXI.loader.add(resource).load(callback);
     });
 }
-//m type
-var a = 1,
-    b = 2,
-    c = 3,
-    d = 4,
-    e = 5,
-    f = 6,
-    z = -1,
-    x = -2;
-var map = [
-// 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18
-z, b, b, b, 0, a, 0, 0, e, e, 0, 0, a, 0, b, b, b, z, z, d, c, 0, 0, 0, 0, c, d, d, c, 0, 0, 0, 0, c, d, z, z, b, b, 0, d, 0, a, a, a, a, a, a, a, 0, d, b, b, z, z, d, 0, z, z, 0, a, 0, 0, 0, 0, 0, a, 0, z, 0, d, z, z, e, 0, e, d, 0, a, 0, x, x, x, 0, a, 0, e, 0, e, z, z, e, 0, e, d, 0, a, 0, 0, 0, 0, 0, a, 0, e, 0, e, z, z, d, 0, z, z, 0, a, a, a, a, a, a, a, 0, z, 0, d, z, z, b, b, 0, 0, x, b, b, b, x, b, b, b, x, 0, b, b, z, z, d, c, 0, 0, 0, 0, x, d, x, d, x, 0, 0, 0, c, d, z, z, b, b, b, c, c, c, c, c, x, c, c, c, c, b, b, b, z];
 //start the game
 var g = null;
 var player = null;
+//
+var noticeEle = new PIXI.Container();
+var text = new PIXI.Text();
+var noticeTimeout = null;
+text.style.padding = 10;
+text.style.align = "center";
+text.style.fill = 0xffffff;
+text.visible = false;
+noticeEle.addChild(text);
 function start(socket) {
     Server.socket = socket;
     loadRes(function () {
-        g = new Grid({});
         // let stone=new Stone({row:5,col:5})
         // new Medicine1({container:stone}).addTo(g)
         // stone.addTo(g);
-        loadMap(g, map);
-        GameSound.play("water", { loop: true });
-        // let id=parseInt(String(Math.random()*1000))
-        // let name=prompt("name:","Player "+id);
-        // Server.emit("join_room",{id,name});
-        // Server.socket.on("join_success",function(data){
-        //     console.log("本机成功加入房间")
-        g.addSelf({ col: 3, row: 1, id: 1 });
-        //     //初始化
-        //     data.players.forEach((item) => {
-        //         if(g.self.id != item.id){
-        //             new Player({id:item.id,...g.unNormalizePos(item.x,item.y)}).addTo(g)
-        //         }
-        //     })
-        // })
-        // Server.socket.on("player_join",function(data){
-        //     console.log(data.name+" 加入房间")
-        //     new Player({id:data.id,row:data.row,col:data.col}).addTo(g)
-        // })
+        GameSound.play("home", { loop: true });
+        pid = parseInt(String(Math.random() * 1000));
+        pname = prompt("name:", "Player " + pid);
+        g = new Grid({});
+        g.app.stage.addChild(noticeEle);
     });
 }
-function loadMap(g, map) {
+function loadMap(g, map, medicines) {
     var base = 41;
     var texture = {
         box: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile2], new PIXI.Rectangle(0, 0, 60, 68)),
@@ -2040,35 +2543,55 @@ function loadMap(g, map) {
         s6: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4], new PIXI.Rectangle(240, 180, base, 60)),
         s7: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4], new PIXI.Rectangle(280, 180, base, 60)),
         s8: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4], new PIXI.Rectangle(320, 180, base, 60)),
-        s9: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4], new PIXI.Rectangle(340, 180, base, 60))
+        s9: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile4], new PIXI.Rectangle(340, 180, base, 60)),
+        t1: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(0, 0, 85, 82)),
+        t2: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(85, 0, 85, 66)),
+        t3: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(170, 0, 75, 73)),
+        t4: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(245, 0, 59, 78)),
+        t5: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(364, 0, 62, 75)),
+        t6: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(425, 0, 63, 80)),
+        t7: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(198, 84, 63, 58)),
+        t8: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(69, 341, 67, 64)),
+        t9: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(0, 245, 64, 75))
     };
-    var col = 0,
-        row = 0;
     map.forEach(function (item, index) {
-        if (index != 0) {
-            col = ((index + 1) % 18 || 18) - 1;
-        } else {
-            col = (index + 1) % 18 - 1;
-        }
-        row = (index + 1) % 18 == 0 ? (index + 1) / 18 - 1 : Math.floor((index + 1) / 18);
+        var _getColRowByIndex = getColRowByIndex(index, 18),
+            col = _getColRowByIndex.col,
+            row = _getColRowByIndex.row;
+
         if (col == 0) {
-            new Stone({ col: col - 1, row: row, texture: texture.box2, destructible: false }).addTo(g);
+            new Stone({ col: col - 1, row: row, texture: texture.box3, destructible: false }).addTo(g);
         } else if (col == 17) {
-            new Stone({ col: col + 1, row: row, texture: texture.box2, destructible: false }).addTo(g);
+            new Stone({ col: col + 1, row: row, texture: texture.box3, destructible: false }).addTo(g);
         } else if (row == 0) {
-            new Stone({ col: col, row: row - 1, texture: texture.box2, destructible: false }).addTo(g);
+            new Stone({ col: col, row: row - 1, texture: texture.box3, destructible: false }).addTo(g);
         } else if (row == 9) {
-            new Stone({ col: col, row: row + 1, texture: texture.box2, destructible: false }).addTo(g);
+            new Stone({ col: col, row: row + 1, texture: texture.box3, destructible: false }).addTo(g);
+        }
+        //add Medicine if have
+        if (medicines[index] && item) {
+            if (medicines[index].eat) return;
+            switch (medicines[index].medicine) {
+                case 'add_speed':
+                    new AddSpeed({ id: medicines[index].id, col: col, row: row }).addTo(g);
+                    break;
+                case 'add_bubble':
+                    new AddBubble({ id: medicines[index].id, col: col, row: row }).addTo(g);
+                    break;
+                case 'add_bubble_radius':
+                    new AddBubbleRadius({ id: medicines[index].id, col: col, row: row }).addTo(g);
+                    break;
+            }
         }
         switch (item) {
             case z:
-                new Stone({ col: col, row: row, texture: texture.box2, destructible: false }).addTo(g);
+                new Stone({ col: col, row: row, texture: texture.s2, destructible: false }).addTo(g);
                 break;
             case x:
-                new Stone({ col: col, row: row, texture: texture.s4, destructible: false }).addTo(g);
+                new Stone({ col: col, row: row, texture: texture.t1, destructible: false }).addTo(g);
                 break;
             case a:
-                new Stone({ col: col, row: row, texture: texture.s2 }).addTo(g);
+                new Stone({ col: col, row: row, texture: texture.box2 }).addTo(g);
                 break;
             case b:
                 new Stone({ col: col, row: row, texture: texture.s1 }).addTo(g);
@@ -2077,13 +2600,32 @@ function loadMap(g, map) {
                 new Stone({ col: col, row: row, texture: texture.box3 }).addTo(g);
                 break;
             case d:
-                new Stone({ col: col, row: row, texture: texture.box1 }).addTo(g);
+                new Stone({ col: col, row: row, texture: texture.t9 }).addTo(g);
                 break;
             case e:
-                new Stone({ col: col, row: row, texture: texture.s3 }).addTo(g);
+                new Stone({ col: col, row: row, texture: texture.t8 }).addTo(g);
                 break;
         }
     });
+}
+function getColRowByIndex(index, mCol) {
+    var col = 0,
+        row = 0;
+    if (index != 0) {
+        col = ((index + 1) % mCol || mCol) - 1;
+    } else {
+        col = (index + 1) % mCol - 1;
+    }
+    row = (index + 1) % mCol == 0 ? (index + 1) / mCol - 1 : Math.floor((index + 1) / mCol);
+    return { col: col, row: row };
+}
+function notice(str) {
+    text.text = str;
+    text.visible = true;
+    clearTimeout(noticeTimeout);
+    noticeTimeout = setTimeout(function () {
+        text.visible = false;
+    }, 3000);
 }
 
 /***/ }),
@@ -2711,11 +3253,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _main_css__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_main_css__WEBPACK_IMPORTED_MODULE_1__);
 
 
-const socket = io('http://localhost:3000');
+const socket = io('http://67.216.197.160:3003');
+// const socket = io('http://10.10.71.238:3003');
 
-// socket.on("connection",(socket) => {
-	_src_game__WEBPACK_IMPORTED_MODULE_0___default.a.start(socket)
-// })
+
+_src_game__WEBPACK_IMPORTED_MODULE_0___default.a.start(socket)
+
  
 
 
