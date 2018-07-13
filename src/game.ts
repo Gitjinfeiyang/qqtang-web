@@ -1,6 +1,8 @@
+// import * as PIXI from '../static/pixi-4.8.1.js';
+import Howler from '../static/howler.min.js'
 const PIXI=(<any>window).PIXI;
 // const Sound=(<any>window).sounds;
-const Howl=(<any>window).Howl;
+const Howl=Howler.Howl;
 export default{
     start
 }
@@ -24,6 +26,7 @@ const res={
     start_page:"./static/res/窗口/开始画面.png",
     start_button:"./static/res/窗口/start.png",
     restart_button:"./static/res/窗口/restart.png",
+    home_button:"./static/res/窗口/《放开那三国》全套美术素材资源-背景-主页 n(mainpa_爱给网_aigei_com.png",
     playerfall1:"./static/res/泡泡/100组卡通烟火冲击序列-魔法光效-0_爱给网_aigei_com.png",
     playerfall2:"./static/res/泡泡/100组卡通烟火冲击序列-魔法光效-1_爱给网_aigei_com.png",
     playerfall3:"./static/res/泡泡/100组卡通烟火冲击序列-魔法光效-2_爱给网_aigei_com.png",
@@ -87,6 +90,7 @@ const defaultProps=calcWindowSize()
 
 
 function calcWindowSize(){
+    // toggleFullScreen(document.body)
     let width=window.innerWidth;
     let height=window.innerHeight;
     let col=18;
@@ -121,7 +125,6 @@ const mapTile={
 var soundInstance={};
 class GameSound {
     static load(callback:Function){
-        // Sound.whenLoaded = callback;
         let soundList=sounds.manifest.map((item) => {
             return sounds.path+(item.src.ogg);
         })
@@ -131,13 +134,7 @@ class GameSound {
             })
         })
         callback()
-        // soundInstance = new Howl({
-        //     src: soundList
-        //   });
 
-        //   soundInstance.once('load', function(){
-        //     callback()
-        //   });
     }
 
     static play(id:string,config:any={}){
@@ -146,10 +143,6 @@ class GameSound {
         })
 
         if(src){
-            // let music=Sound[sounds.path+src.src.ogg]
-            // Object.keys(config).forEach((key) => {
-            //     music[key]=config[key]
-            // })
             soundInstance[sounds.path+src.src.ogg].play();
             if(config.loop){
                 soundInstance[sounds.path+src.src.ogg].loop(true) 
@@ -158,15 +151,13 @@ class GameSound {
     }
 
     static pause(id:string){
-        // let src=sounds.manifest.find((item) => {
-        //     return item.id==id;
-        // })
+        let src=sounds.manifest.find((item) => {
+            return item.id==id;
+        })
 
-        // if(src){
-        //     let music=Sound[sounds.path+src.src.ogg]
-
-        //     music.pause(id);
-        // }
+        if(src){
+            soundInstance[sounds.path+src.src.ogg].pause();
+        }
     }
 }
 
@@ -193,52 +184,134 @@ class GameControler{
     }
 
     initMobile(){
-        const r=80,r1=50;
+        const r=50,r1=50;
         this.directionEle=new PIXI.Container();
-        this.directionEle.width=r*2;
-        this.directionEle.height=r*2;
-        const outside=new PIXI.Graphics();
-        this.directionEle.addChild(outside)
-        outside.beginFill(0xffffff,0.3)
-        outside.drawCircle(0,0,r)
-        outside.endFill();
-        outside.x=r;
-        outside.y=r;
-        outside.interactive=true;
-        let allowControl=false;
-        let last='';
-        outside.on("pointermove",(e) => {
-            if(!allowControl) return;
-            let x=e.data.global.x;
-            let y=e.data.global.y;
-            if(x-this.directionEle.x <=0){
-                if(last === 'ArrowLeft') return;
-                this.emitDirectionChange({direction:"ArrowLeft"})
-            }else if(x-this.directionEle.x-r*2 >=0){
-                if(last === 'ArrowLeft') return;
-                this.emitDirectionChange({direction:"ArrowRight"})
-            }else if(y-this.directionEle.y <=0){
-                if(last === 'ArrowUp') return;
-                this.emitDirectionChange({direction:"ArrowUp"})
-            }else if(y-this.directionEle.y-r*2>=0){
-                if(last === 'ArrowDown') return;
-                this.emitDirectionChange({direction:"ArrowDown"})
-            }else{
-                if(last === 'Center') return;
-                this.emitDirectionChange({direction:"Center"})
-            }
+        this.directionEle.width=r*3;
+        this.directionEle.height=r*3;
+        const left=new PIXI.Graphics();
+        const right=new PIXI.Graphics();
+        const up=new PIXI.Graphics();
+        const down=new PIXI.Graphics();
+        left.interactive=right.interactive=up.interactive=down.interactive=true;
+        this.directionEle.addChild(left)
+        this.directionEle.addChild(right)
+        this.directionEle.addChild(up)
+        this.directionEle.addChild(down)
+        left.beginFill(0xffffff,0.3);
+        left.drawCircle(0,0,r/2,r/2);
+        left.endFill()
+        right.beginFill(0xffffff,0.3);
+        right.drawCircle(0,0,r/2,r/2);
+        right.endFill()
+        up.beginFill(0xffffff,0.3);
+        up.drawCircle(0,0,r/2,r/2);
+        up.endFill()
+        down.beginFill(0xffffff,0.3);
+        down.drawCircle(0,0,r/2,r/2);
+        down.endFill()
+        left.x=0;left.y=r;
+        right.x=r*2;right.y=r;
+        up.x=r; up.y=0;
+        down.x=r;down.y=r*2;
+        left.on("touchstart",(e) => {
+            left.alpha=0.5;
+            this.emitDirectionChange({direction:"ArrowLeft"})
         })
-        outside.on("pointerdown",(e) => {
-            allowControl=true;
+        right.on("touchstart",(e) => {
+            right.alpha=0.5;
+            this.emitDirectionChange({direction:"ArrowRight"})
         })
-        outside.on("touchend",(e) => {
-            allowControl=false;
+        up.on("touchstart",(e) => {
+            up.alpha=0.5;
+
+            this.emitDirectionChange({direction:"ArrowUp"})
+        })
+        down.on("touchstart",(e) => {
+            down.alpha=0.5;
+
+            this.emitDirectionChange({direction:"ArrowDown"})
+        })
+        left.on("touchendoutside",(e) => {
+            left.alpha=1;
+
             this.emitDirectionChange({direction:"Center"})
         })
-        outside.on("touchendoutside",(e) => {
-            allowControl=false;
+        right.on("touchendoutside",(e) => {
+            right.alpha=1;
+
             this.emitDirectionChange({direction:"Center"})
         })
+        up.on("touchendoutside",(e) => {
+            up.alpha=1;
+
+            this.emitDirectionChange({direction:"Center"})
+        })
+        down.on("touchendoutside",(e) => {
+            down.alpha=1;
+
+            this.emitDirectionChange({direction:"Center"})
+        })
+        left.on("touchend",(e) => {
+            left.alpha=1;
+
+            this.emitDirectionChange({direction:"Center"})
+        })
+        right.on("touchend",(e) => {
+            right.alpha=1;
+
+            this.emitDirectionChange({direction:"Center"})
+        })
+        up.on("touchend",(e) => {
+            up.alpha=1;
+            this.emitDirectionChange({direction:"Center"})
+        })
+        down.on("touchend",(e) => {
+            down.alpha=1;
+            this.emitDirectionChange({direction:"Center"})
+        })
+        //滑动控制，体验不佳
+        // const outside=new PIXI.Graphics();
+        // this.directionEle.addChild(outside)
+        // outside.beginFill(0xffffff,0.3)
+        // outside.drawCircle(0,0,r)
+        // outside.endFill();
+        // outside.x=r;
+        // outside.y=r;
+        // outside.interactive=true;
+        // let allowControl=false;
+        // let last='';
+        // outside.on("pointermove",(e) => {
+        //     if(!allowControl) return;
+        //     let x=e.data.global.x;
+        //     let y=e.data.global.y;
+        //     if(x-this.directionEle.x <=0){
+        //         if(last === 'ArrowLeft') return;
+        //         this.emitDirectionChange({direction:"ArrowLeft"})
+        //     }else if(x-this.directionEle.x-r*2 >=0){
+        //         if(last === 'ArrowLeft') return;
+        //         this.emitDirectionChange({direction:"ArrowRight"})
+        //     }else if(y-this.directionEle.y <=0){
+        //         if(last === 'ArrowUp') return;
+        //         this.emitDirectionChange({direction:"ArrowUp"})
+        //     }else if(y-this.directionEle.y-r*2>=0){
+        //         if(last === 'ArrowDown') return;
+        //         this.emitDirectionChange({direction:"ArrowDown"})
+        //     }else{
+        //         if(last === 'Center') return;
+        //         this.emitDirectionChange({direction:"Center"})
+        //     }
+        // })
+        // outside.on("pointerdown",(e) => {
+        //     allowControl=true;
+        // })
+        // outside.on("pointerup",(e) => {
+        //     allowControl=false;
+        //     this.emitDirectionChange({direction:"Center"})
+        // })
+        // outside.on("touchendoutside",(e) => {
+        //     allowControl=false;
+        //     this.emitDirectionChange({direction:"Center"})
+        // })
 
         this.actionEle=new PIXI.Container();
         const createBubble=new PIXI.Graphics();
@@ -327,6 +400,7 @@ class Grid {
     h:number;
     startPage:any;
     restartPage:any;
+    homeButton:any;
     platform:string; //平台 pc ios android
 
     constructor(props){
@@ -393,6 +467,7 @@ class Grid {
                 click:"tap"
             }
         }
+        //开始
         this.startPage=new PIXI.Container();
         let g=new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.start_page],new PIXI.Rectangle(0,40,800,520)))
         g.width=window.innerWidth;
@@ -409,7 +484,9 @@ class Grid {
             notice("搜索房间中...")
             Server.emit("search_room",{id:pid,name:pname});
         })
+        
 
+        //重新开始 
         this.restartPage=new PIXI.Container();
         let restart=new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.restart_button]))
         this.restartPage.addChild(restart);
@@ -422,6 +499,21 @@ class Grid {
         this.restartPage.visible=false;
         this.app.stage.addChild(this.restartPage)
 
+
+       //回到开始
+       this.homeButton = new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.home_button]))
+       this.homeButton.width = this.homeButton.height = 60;
+       this.homeButton.x = this.w - 70; this.homeButton.y = 10
+       this.app.stage.addChild(this.homeButton)
+       this.homeButton.interactive=true;
+       this.homeButton.on(event.click,(e) => {
+           if(this.startPage.visible) return;
+         Server.emit("leave_room",{});
+         this.clear()
+         this.startPage.visible=true;
+         startButton.visible=true;
+         this.restartPage.visible=false;
+       })
         
     }
 
@@ -690,7 +782,7 @@ class Grid {
             loadMap(this,map,data.medicines)
             this.addSelf({col:data.col,row:data.row,id:data.id,name:data.name,isSelf:true,team:data.team})
             if(this.platform !== 'pc'){
-                controler.attachDirectionControler(this.map,40,this.map.height-360)
+                controler.attachDirectionControler(this.map,40,this.map.height-260)
                 controler.attachActionControler(this.map,this.map.width-220,this.map.height-260)
             }
             stop()
