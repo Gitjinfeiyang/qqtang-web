@@ -491,6 +491,8 @@ class Grid {
         let restart=new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.restart_button]))
         this.restartPage.addChild(restart);
         restart.interactive=true;
+        restart.x = (this.w - restart.width)/2
+        restart.y = (this.h - restart.height)/2
         restart.on(event.click,(event) => {
             this.restartPage.visible=false;
             // this.self.restart()
@@ -1839,10 +1841,14 @@ let player=null;
 let noticeEle=new PIXI.Container();
 let text=new PIXI.Text();
 let noticeTimeout=null;
-text.style.padding=10;
-text.style.align="center";
-text.style.fill=0xffffff
-text.visible=false;
+text.style.padding = 20;
+text.style.fontSize = 30
+text.style.align = "center";
+text.style.fill = 0xffffff;
+text.style.stroke = 0x000000
+text.style.strokeThickness = 4
+text.position.x = 20
+text.position.y = 20
 noticeEle.addChild(text);
 
 function start(socket){
