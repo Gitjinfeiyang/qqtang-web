@@ -1900,6 +1900,12 @@ function loadMap(g:Grid,map:Array<number>,medicines:Array<any>):void{
             t8:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5],new PIXI.Rectangle(69,341,67,64)),
             t9:new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5],new PIXI.Rectangle(0,245,64,75)),
     }
+    
+    // 填上4个角
+    new Stone({col:-1,row:-1,texture:texture.box3,destructible:false}).addTo(g)
+    new Stone({col:18,row:10,texture:texture.box3,destructible:false}).addTo(g)
+    new Stone({col:18,row:-1,texture:texture.box3,destructible:false}).addTo(g)
+    new Stone({col:-1,row:10,texture:texture.box3,destructible:false}).addTo(g)
 
     map.forEach((item,index) => {
         let {col,row}=getColRowByIndex(index,18)
