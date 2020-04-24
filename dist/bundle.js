@@ -62,7 +62,7 @@
 /******/ 	}
 /******/
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "6b98aee9f37b8835b1a5"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "60d884b50eb20e66200b"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -932,7 +932,11 @@ var GameSound = function () {
                 return item.id == id;
             });
             if (src) {
+                if (GameSound.currentPlay) {
+                    GameSound.currentPlay.stop();
+                }
                 soundInstance[sounds.path + src.src.ogg].play();
+                GameSound.currentPlay = soundInstance[sounds.path + src.src.ogg];
                 if (config.loop) {
                     soundInstance[sounds.path + src.src.ogg].loop(true);
                 }
@@ -945,13 +949,15 @@ var GameSound = function () {
                 return item.id == id;
             });
             if (src) {
-                soundInstance[sounds.path + src.src.ogg].pause();
+                soundInstance[sounds.path + src.src.ogg].stop();
             }
         }
     }]);
 
     return GameSound;
 }();
+
+GameSound.currentPlay = null;
 
 var GameControler = function () {
     function GameControler(props) {
@@ -1245,7 +1251,7 @@ var Grid = function () {
             }
             //开始
             this.startPage = new PIXI.Container();
-            var g = new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.start_page], new PIXI.Rectangle(this.map.x, this.map.y, this.map.width, this.map.height)));
+            var g = new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.start_page], new PIXI.Rectangle(0, 40, 800, 520)));
             g.width = window.innerWidth;
             g.height = window.innerHeight;
             var startButton = new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.start_button]));
@@ -1265,6 +1271,8 @@ var Grid = function () {
             var restart = new PIXI.Sprite(new PIXI.Texture(PIXI.utils.TextureCache[res.restart_button]));
             this.restartPage.addChild(restart);
             restart.interactive = true;
+            restart.x = (this.w - restart.width) / 2;
+            restart.y = (this.h - restart.height) / 2;
             restart.on(event.click, function (event) {
                 _this3.restartPage.visible = false;
                 // this.self.restart()
@@ -1538,9 +1546,9 @@ var Grid = function () {
                 var winner = _ref.winner;
 
                 if (winner[0].team == _this5.self.team) {
-                    notice("胜利");
+                    notice("大吉大利今晚吃鸡");
                 } else {
-                    notice("失败");
+                    notice("你是个好人");
                 }
                 _this5.restartPage.visible = true;
             });
@@ -1769,7 +1777,7 @@ var Player = function (_Material) {
 
         var options = Object.assign({
             //Player
-            speed: defaultProps.size / 10,
+            speed: defaultProps.size / 20,
             direction: null,
             maxBubbleCount: 1,
             bubbleRadius: 1,
@@ -2422,7 +2430,7 @@ var AddSpeed = function (_Medicine) {
     _createClass(AddSpeed, [{
         key: "changePlayerAttr",
         value: function changePlayerAttr(player) {
-            player.speed += 1;
+            player.speed += 0.5;
             notice("移动速度增加");
         }
     }]);
@@ -2600,10 +2608,14 @@ var player = null;
 var noticeEle = new PIXI.Container();
 var text = new PIXI.Text();
 var noticeTimeout = null;
-text.style.padding = 10;
+text.style.padding = 20;
+text.style.fontSize = 30;
 text.style.align = "center";
 text.style.fill = 0xffffff;
-text.visible = false;
+text.style.stroke = 0x000000;
+text.style.strokeThickness = 4;
+text.position.x = 20;
+text.position.y = 20;
 noticeEle.addChild(text);
 function start(socket) {
     Server.socket = socket;
@@ -2644,6 +2656,11 @@ function loadMap(g, map, medicines) {
         t8: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(69, 341, 67, 64)),
         t9: new PIXI.Texture(PIXI.utils.TextureCache[res.maptile5], new PIXI.Rectangle(0, 245, 64, 75))
     };
+    // 填上4个角
+    new Stone({ col: -1, row: -1, texture: texture.box3, destructible: false }).addTo(g);
+    new Stone({ col: 18, row: 10, texture: texture.box3, destructible: false }).addTo(g);
+    new Stone({ col: 18, row: -1, texture: texture.box3, destructible: false }).addTo(g);
+    new Stone({ col: -1, row: 10, texture: texture.box3, destructible: false }).addTo(g);
     map.forEach(function (item, index) {
         var _getColRowByIndex = getColRowByIndex(index, 18),
             col = _getColRowByIndex.col,
@@ -3405,7 +3422,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const socket = _static_socket_io_min_js__WEBPACK_IMPORTED_MODULE_0___default()('https://jinfeiyang.top:3003');
+const socket = _static_socket_io_min_js__WEBPACK_IMPORTED_MODULE_0___default()('http://localhost:3003');
 // const socket = io('http://10.10.71.238:3003');
 // var ws = new WebSocket("wss://jinfeiyang.top:3003");
 // ws.onopen=function(){

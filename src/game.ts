@@ -124,15 +124,19 @@ const mapTile={
 //sound.js 兼容性有问题
 var soundInstance={};
 class GameSound {
+    static currentPlay = null
+
     static load(callback:Function){
         let soundList=sounds.manifest.map((item) => {
             return sounds.path+(item.src.ogg);
         })
+
         soundList.forEach((item) => {
             soundInstance[item]=new Howl({
                 src:[item]
             })
         })
+
         callback()
 
     }
@@ -143,7 +147,11 @@ class GameSound {
         })
 
         if(src){
+            if(GameSound.currentPlay){
+                GameSound.currentPlay.stop()
+            }
             soundInstance[sounds.path+src.src.ogg].play();
+            GameSound.currentPlay = soundInstance[sounds.path+src.src.ogg]
             if(config.loop){
                 soundInstance[sounds.path+src.src.ogg].loop(true) 
             }
@@ -156,7 +164,7 @@ class GameSound {
         })
 
         if(src){
-            soundInstance[sounds.path+src.src.ogg].pause();
+            soundInstance[sounds.path+src.src.ogg].stop();
         }
     }
 }
@@ -797,17 +805,17 @@ class Grid {
             })
 
 
-                    Server.on("player_join",(data) => {
-                        notice(data.name+" 加入房间")
-                        new Player({id:data.id,row:data.row,col:data.col,name:data.name,team:data.team}).addTo(this)
-                    })
+            Server.on("player_join",(data) => {
+                notice(data.name+" 加入房间")
+                new Player({id:data.id,row:data.row,col:data.col,name:data.name,team:data.team}).addTo(this)
+            })
         })
 
         Server.on("s_gameover",({winner}) => {
             if(winner[0].team == this.self.team){
-                notice("胜利")
+                notice("大吉大利今晚吃鸡")
             }else{
-                notice("失败")
+                notice("你是个好人")
             }
             this.restartPage.visible=true;
         })
@@ -1041,7 +1049,7 @@ class Player extends Material{
     constructor(props){
         const options=Object.assign({
             //Player
-            speed:defaultProps.size/10,
+            speed:defaultProps.size/20,
             direction:null,
             maxBubbleCount:1,
             bubbleRadius:1,
@@ -1643,7 +1651,7 @@ class AddSpeed extends Medicine {
 
     //overide   
     changePlayerAttr(player:Player){
-        player.speed+=1;
+        player.speed+=0.5;
         notice("移动速度增加")
     }
 
@@ -1861,7 +1869,6 @@ function start(socket){
 
         // new Medicine1({container:stone}).addTo(g)
         // stone.addTo(g);
-
 
         GameSound.play("home",{loop:true})
 
