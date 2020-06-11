@@ -5,7 +5,7 @@
 
 # Demo
 ## 因为目前只支持两人对战，所以只有等加入的房间满2人才会开始，可以自己开两个窗口
-[Demo](http:47.240.9.34:3003/qqtang)
+[Demo](http://jinfeiyang.top:3003/qqtang)
 
 
 # Screenshots
